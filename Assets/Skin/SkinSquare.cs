@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UniRx;
 
 public class SkinSquare : MonoBehaviour
 {
     private int index;
+    [SerializeField] private SkinChangeManager manager;
     void Start()
     {
         //自分が親オブジェクトの何番目に位置しているか
@@ -16,7 +19,6 @@ public class SkinSquare : MonoBehaviour
 
     public void OnClicked()
     {
-        //SkinChangeManagerにindexを教えつつなんか頑張ってもらう(UniRxとか使う？)
-        Debug.Log(index + " clicked");
+        manager.OnSquareSelected.OnNext(index);
     }
 }
