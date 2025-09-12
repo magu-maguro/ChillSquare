@@ -9,7 +9,7 @@ public class SkinSliderController : MonoBehaviour
     [SerializeField] private Slider bSlider;
 
     [SerializeField] private SkinChangeManager manager;
-    void Start()
+    void Awake()
     {
         Observable.Merge(
             rSlider.OnValueChangedAsObservable(),
@@ -22,8 +22,11 @@ public class SkinSliderController : MonoBehaviour
         }).AddTo(this);
     }
 
-    void Update()
+    // 管理クラスから呼んで、イベント発火させずに値をセットする
+    public void SetRGBWithoutNotify(Color c)
     {
-
+        rSlider.SetValueWithoutNotify(c.r);
+        gSlider.SetValueWithoutNotify(c.g);
+        bSlider.SetValueWithoutNotify(c.b);
     }
 }

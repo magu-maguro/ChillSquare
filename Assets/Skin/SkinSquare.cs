@@ -6,7 +6,7 @@ public class SkinSquare : MonoBehaviour
 {
     private int index;
     [SerializeField] private SkinChangeManager manager;
-    void Start()
+    void Awake()
     {
         //自分が親オブジェクトの何番目に位置しているか
         index = transform.GetSiblingIndex();
