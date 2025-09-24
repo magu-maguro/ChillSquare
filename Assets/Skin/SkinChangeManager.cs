@@ -5,6 +5,7 @@ using System;
 
 public class SkinChangeManager : MonoBehaviour
 {
+    [SerializeField] private GameObject skinPanel;
     [SerializeField] private Transform SquaresParent;
     [SerializeField] private SkinSliderController sliderController;
     [SerializeField] private SpriteRenderer playerRenderer;
@@ -13,11 +14,13 @@ public class SkinChangeManager : MonoBehaviour
     //private IDisposable colorSubscription;
 
     private int texSize = 256;
-    private int ppu = 256;    
+    private int ppu = 256;
 
     //外部から購読
     public Subject<int> OnSquareSelected = new Subject<int>();
     public Subject<Color> OnColorChanged = new Subject<Color>();
+    //パネル表示切替入力
+    private PlayerInputActions inputActions;
 
     void Awake()
     {
@@ -25,6 +28,7 @@ public class SkinChangeManager : MonoBehaviour
         {
             squares[i] = SquaresParent.GetChild(i).GetComponent<Image>();
         }
+        //----------------------------
         //Squareクリックされたとき
         OnSquareSelected.Subscribe(index =>
         {
@@ -41,6 +45,10 @@ public class SkinChangeManager : MonoBehaviour
             squares[currentIndex].color = color;
             Debug.Log("squares[" + currentIndex + "].color -> " + color);
         }).AddTo(this);
+        //----------------------------
+        inputActions = new PlayerInputActions();
+        inputActions.SkinChange.Enable();
+        inputActions.SkinChange.TogglePanel.performed += ctx => ToggleSkinPanel();
     }
 
     void Start()
@@ -50,13 +58,6 @@ public class SkinChangeManager : MonoBehaviour
             LoadSkin();
         }
     }
-
-
-    void Update()
-    {
-
-    }
-
     public void SaveSkin()
     {
         //SkinDataクラスに色情報まとめる
@@ -74,6 +75,9 @@ public class SkinChangeManager : MonoBehaviour
         //Debug.Log(PlayerPrefs.GetString("SkinData"));
 
         ApplySkin(data);
+
+        //フラグ管理
+        GameManager.Instance.SetState(GameManager.GameState.Playing);
     }
 
     private void LoadSkin()
@@ -122,7 +126,21 @@ public class SkinChangeManager : MonoBehaviour
         //スプライトにしてプレイヤーに反映
         Sprite newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), ppu);
         playerRenderer.sprite = newSprite;
+    }
+    //----------------------------
+    private void ToggleSkinPanel()
+    {
+        bool isActive = !skinPanel.activeSelf;
+        skinPanel.SetActive(isActive);
 
-
+        if (isActive)
+        {
+            GameManager.Instance.SetState(GameManager.GameState.SkinMenu);
+        }
+        else
+        {
+            SaveSkin();
+            GameManager.Instance.SetState(GameManager.GameState.Playing);
+        }
     }
 }

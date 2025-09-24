@@ -126,6 +126,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "SkinChange",
+            "id": "bcc3eb97-1e9f-4c7e-bedc-35b6e1d6b92e",
+            "actions": [
+                {
+                    "name": "TogglePanel",
+                    "type": "Button",
+                    "id": "56f9c64b-832a-4b68-8c9e-8614abfbf1a3",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "9726d629-509c-42b6-9f05-238c613454b1",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TogglePanel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

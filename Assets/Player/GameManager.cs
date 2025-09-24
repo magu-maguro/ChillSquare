@@ -2,15 +2,29 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public static GameManager Instance { get; private set; }
+
+    public enum GameState
     {
-        Application.targetFrameRate = 60;
+        Playing,
+        SkinMenu
     }
 
-    // Update is called once per frame
-    void Update()
+    public GameState CurrentState { get; private set; } = GameState.Playing;
+
+    private void Awake()
     {
-        
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    public void SetState(GameState newState)
+    {
+        CurrentState = newState;
+    }
+
+    public bool IsPlayerInputAllowed()
+    {
+        return CurrentState == GameState.Playing;
     }
 }

@@ -46,8 +46,14 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        //GameManagerのbool確認
+        if (!GameManager.Instance.IsPlayerInputAllowed())
+        {
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+            return;
+        }
         //横移動
-        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
 
         //接地判定
         isGrounded = GetComponentInChildren<ForGround>().IsGrounded;

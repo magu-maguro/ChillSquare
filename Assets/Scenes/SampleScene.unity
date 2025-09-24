@@ -451,7 +451,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &76650327
 RectTransform:
   m_ObjectHideFlags: 0
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "TODO:\n\u30B9\u30E9\u30A4\u30C0\u30FC\u304C\u30A2\u30AF\u30C6\u30A3\u30D6\u306B\u306A\u3063\u305F\u30BF\u30A4\u30DF\u30F3\u30B0\u3067UI\u306E\u6B63\u65B9\u5F62\u306E0\u756A\u76EE\u304C\u4E0A\u66F8\u304D\u3055\u308C\u3066\u3057\u307E\u3046\u306E\u3092\u6CBB\u3057\u305F\u3044"
+  m_text: "TODO:\n\u7279\u306B\u306A\u3057"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
   m_sharedMaterial: {fileID: -5343046451154712859, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
@@ -2340,6 +2340,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bd7b2630bc41a847937f3d34eb423cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skinPanel: {fileID: 1475978767}
   SquaresParent: {fileID: 320163693}
   sliderController: {fileID: 569965624}
   playerRenderer: {fileID: 1510102668}

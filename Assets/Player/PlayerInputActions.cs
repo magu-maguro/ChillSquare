@@ -212,6 +212,34 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""SkinChange"",
+            ""id"": ""bcc3eb97-1e9f-4c7e-bedc-35b6e1d6b92e"",
+            ""actions"": [
+                {
+                    ""name"": ""TogglePanel"",
+                    ""type"": ""Button"",
+                    ""id"": ""56f9c64b-832a-4b68-8c9e-8614abfbf1a3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""9726d629-509c-42b6-9f05-238c613454b1"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TogglePanel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -220,11 +248,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
+        // SkinChange
+        m_SkinChange = asset.FindActionMap("SkinChange", throwIfNotFound: true);
+        m_SkinChange_TogglePanel = m_SkinChange.FindAction("TogglePanel", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputActions.Player.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_SkinChange.enabled, "This will cause a leak and performance issues, PlayerInputActions.SkinChange.Disable() has not been called.");
     }
 
     /// <summary>
@@ -403,6 +435,102 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="PlayerActions" /> instance referencing this action map.
     /// </summary>
     public PlayerActions @Player => new PlayerActions(this);
+
+    // SkinChange
+    private readonly InputActionMap m_SkinChange;
+    private List<ISkinChangeActions> m_SkinChangeActionsCallbackInterfaces = new List<ISkinChangeActions>();
+    private readonly InputAction m_SkinChange_TogglePanel;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "SkinChange".
+    /// </summary>
+    public struct SkinChangeActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public SkinChangeActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "SkinChange/TogglePanel".
+        /// </summary>
+        public InputAction @TogglePanel => m_Wrapper.m_SkinChange_TogglePanel;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_SkinChange; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="SkinChangeActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(SkinChangeActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="SkinChangeActions" />
+        public void AddCallbacks(ISkinChangeActions instance)
+        {
+            if (instance == null || m_Wrapper.m_SkinChangeActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_SkinChangeActionsCallbackInterfaces.Add(instance);
+            @TogglePanel.started += instance.OnTogglePanel;
+            @TogglePanel.performed += instance.OnTogglePanel;
+            @TogglePanel.canceled += instance.OnTogglePanel;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="SkinChangeActions" />
+        private void UnregisterCallbacks(ISkinChangeActions instance)
+        {
+            @TogglePanel.started -= instance.OnTogglePanel;
+            @TogglePanel.performed -= instance.OnTogglePanel;
+            @TogglePanel.canceled -= instance.OnTogglePanel;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="SkinChangeActions.UnregisterCallbacks(ISkinChangeActions)" />.
+        /// </summary>
+        /// <seealso cref="SkinChangeActions.UnregisterCallbacks(ISkinChangeActions)" />
+        public void RemoveCallbacks(ISkinChangeActions instance)
+        {
+            if (m_Wrapper.m_SkinChangeActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="SkinChangeActions.AddCallbacks(ISkinChangeActions)" />
+        /// <seealso cref="SkinChangeActions.RemoveCallbacks(ISkinChangeActions)" />
+        /// <seealso cref="SkinChangeActions.UnregisterCallbacks(ISkinChangeActions)" />
+        public void SetCallbacks(ISkinChangeActions instance)
+        {
+            foreach (var item in m_Wrapper.m_SkinChangeActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_SkinChangeActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="SkinChangeActions" /> instance referencing this action map.
+    /// </summary>
+    public SkinChangeActions @SkinChange => new SkinChangeActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
     /// </summary>
@@ -424,5 +552,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "SkinChange" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="SkinChangeActions.AddCallbacks(ISkinChangeActions)" />
+    /// <seealso cref="SkinChangeActions.RemoveCallbacks(ISkinChangeActions)" />
+    public interface ISkinChangeActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "TogglePanel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTogglePanel(InputAction.CallbackContext context);
     }
 }
