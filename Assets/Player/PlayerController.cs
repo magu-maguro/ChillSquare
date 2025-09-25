@@ -5,10 +5,25 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
+    //---入力関係
     private PlayerInputActions inputActions;
     private Vector2 moveInput;
     private bool isJumpPressed;//ジャンプキー押した瞬間かどうか
     private bool isJumpPressing;//ジャンプキー押している間かどうか
+
+    protected virtual Vector2 GetMoveInput()
+    {
+        return moveInput;
+    }
+    protected virtual bool GetJumpPressed()
+    {
+        return isJumpPressed;
+    }
+    protected virtual bool GetJumpPressing()
+    {
+        return isJumpPressing;
+    }
+    //---
     //子オブジェクトのコライダーで接地判定
     private Collider2D groundCollider;
     private bool isGrounded;
@@ -53,19 +68,25 @@ public class PlayerController : MonoBehaviour
             return;
         }
         //横移動
-            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        //rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        //moveInputなどを間接的に取る(CPU対応)
+        var input = GetMoveInput();
+        rb.linearVelocity = new Vector2(input.x * moveSpeed, rb.linearVelocity.y);
+
+        bool jumpPressed = GetJumpPressed();
+        bool jumpPressing = GetJumpPressing();
 
         //接地判定
         isGrounded = GetComponentInChildren<ForGround>().IsGrounded;
 
         //ジャンプ(初速度与えるだけ)
-        if (isJumpPressed && isGrounded)
+        if (jumpPressed && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpInitialSpeed);
         }
 
         //ジャンプキー押していて上昇中のときだけ重力弱め
-        if (isJumpPressing && rb.linearVelocity.y > 0)
+        if (jumpPressing && rb.linearVelocity.y > 0)
         {
             rb.gravityScale = jumpingGravity;
         }
