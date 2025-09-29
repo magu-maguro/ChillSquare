@@ -240,6 +240,34 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""PostEffect"",
+            ""id"": ""80b2f706-c657-4368-b1b8-4e936fa36134"",
+            ""actions"": [
+                {
+                    ""name"": ""ChangeEffect"",
+                    ""type"": ""Button"",
+                    ""id"": ""b081b095-f966-4acb-a2b0-e3053d812885"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""7b98135a-173a-481b-a766-8596a60d0f99"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeEffect"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -251,12 +279,16 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         // SkinChange
         m_SkinChange = asset.FindActionMap("SkinChange", throwIfNotFound: true);
         m_SkinChange_TogglePanel = m_SkinChange.FindAction("TogglePanel", throwIfNotFound: true);
+        // PostEffect
+        m_PostEffect = asset.FindActionMap("PostEffect", throwIfNotFound: true);
+        m_PostEffect_ChangeEffect = m_PostEffect.FindAction("ChangeEffect", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputActions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_SkinChange.enabled, "This will cause a leak and performance issues, PlayerInputActions.SkinChange.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_PostEffect.enabled, "This will cause a leak and performance issues, PlayerInputActions.PostEffect.Disable() has not been called.");
     }
 
     /// <summary>
@@ -531,6 +563,102 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="SkinChangeActions" /> instance referencing this action map.
     /// </summary>
     public SkinChangeActions @SkinChange => new SkinChangeActions(this);
+
+    // PostEffect
+    private readonly InputActionMap m_PostEffect;
+    private List<IPostEffectActions> m_PostEffectActionsCallbackInterfaces = new List<IPostEffectActions>();
+    private readonly InputAction m_PostEffect_ChangeEffect;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "PostEffect".
+    /// </summary>
+    public struct PostEffectActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public PostEffectActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "PostEffect/ChangeEffect".
+        /// </summary>
+        public InputAction @ChangeEffect => m_Wrapper.m_PostEffect_ChangeEffect;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_PostEffect; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="PostEffectActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(PostEffectActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="PostEffectActions" />
+        public void AddCallbacks(IPostEffectActions instance)
+        {
+            if (instance == null || m_Wrapper.m_PostEffectActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PostEffectActionsCallbackInterfaces.Add(instance);
+            @ChangeEffect.started += instance.OnChangeEffect;
+            @ChangeEffect.performed += instance.OnChangeEffect;
+            @ChangeEffect.canceled += instance.OnChangeEffect;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="PostEffectActions" />
+        private void UnregisterCallbacks(IPostEffectActions instance)
+        {
+            @ChangeEffect.started -= instance.OnChangeEffect;
+            @ChangeEffect.performed -= instance.OnChangeEffect;
+            @ChangeEffect.canceled -= instance.OnChangeEffect;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PostEffectActions.UnregisterCallbacks(IPostEffectActions)" />.
+        /// </summary>
+        /// <seealso cref="PostEffectActions.UnregisterCallbacks(IPostEffectActions)" />
+        public void RemoveCallbacks(IPostEffectActions instance)
+        {
+            if (m_Wrapper.m_PostEffectActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="PostEffectActions.AddCallbacks(IPostEffectActions)" />
+        /// <seealso cref="PostEffectActions.RemoveCallbacks(IPostEffectActions)" />
+        /// <seealso cref="PostEffectActions.UnregisterCallbacks(IPostEffectActions)" />
+        public void SetCallbacks(IPostEffectActions instance)
+        {
+            foreach (var item in m_Wrapper.m_PostEffectActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_PostEffectActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="PostEffectActions" /> instance referencing this action map.
+    /// </summary>
+    public PostEffectActions @PostEffect => new PostEffectActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
     /// </summary>
@@ -567,5 +695,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTogglePanel(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "PostEffect" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="PostEffectActions.AddCallbacks(IPostEffectActions)" />
+    /// <seealso cref="PostEffectActions.RemoveCallbacks(IPostEffectActions)" />
+    public interface IPostEffectActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "ChangeEffect" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnChangeEffect(InputAction.CallbackContext context);
     }
 }
