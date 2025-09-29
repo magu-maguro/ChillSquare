@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 public class PostEffectRendererFeature : ScriptableRendererFeature
 {
@@ -30,26 +31,35 @@ public class PostEffectRendererFeature : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (blitMaterial == null) return;
+            // マテリアルが無ければ何もしない（nullで無害化できるように）
+            if (blitMaterial == null)
+                return;
 
+            // フレームのリソースを取得
             var resourceData = frameData.Get<UniversalResourceData>();
+            var src = resourceData.activeColorTexture;
+            if (!src.IsValid())
+                return;
 
-            using (var builder = renderGraph.AddRenderPass<PassData>(profilerTag, out var passData))
-            {
-                // カメラのカラーターゲットを読み書きで使用
-                passData.source = resourceData.activeColorTexture;
-                builder.WriteTexture(passData.source);
+            // src と同じ定義の一時テクスチャを作る（名前はデバッグ用）
+            // renderGraph.CreateTexture(TextureHandle) のオーバーロードを使うと簡単
+            TextureHandle destination = renderGraph.CreateTexture(src, profilerTag + "_Temp", false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext ctx) =>
-                {
-                    Blitter.BlitTexture(ctx.cmd, data.source, new Vector4(1, 1, 0, 0), blitMaterial, 0);
-                });
-            }
+            // マテリアルが設定されているなら BlitPass を使う
+            var blitParams = new RenderGraphUtils.BlitMaterialParameters(src, destination, blitMaterial, 0);
+            renderGraph.AddBlitPass(blitParams, profilerTag + " Blit");
+
+            // 以降のパス（URP内部や他の RendererFeature）がこの destination を cameraColor として使うように差し替える
+            resourceData.cameraColor = destination;
+
+            // ※ ここで return せずに他の AddBlitPass / AddCopyPass を続ければ多段処理も可能です。
         }
+
 
         private class PassData
         {
             public TextureHandle source;
+            public Material material;
         }
 
     }

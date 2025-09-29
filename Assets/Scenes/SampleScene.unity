@@ -2294,6 +2294,7 @@ GameObject:
   - component: {fileID: 1061437552}
   - component: {fileID: 1061437551}
   - component: {fileID: 1061437553}
+  - component: {fileID: 1061437554}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -2344,6 +2345,20 @@ MonoBehaviour:
   SquaresParent: {fileID: 320163693}
   sliderController: {fileID: 569965624}
   playerRenderer: {fileID: 1510102668}
+--- !u!114 &1061437554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1061437550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0472dd912f08a346b293ffec8381587, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  postEffectFeature: {fileID: 545132623063450323, guid: 424799608f7334c24bf367e4bbfa7f9a, type: 2}
+  glayscaleMat: {fileID: -876546973899608171, guid: 6fe9a1747ee0cc241a448a1d5fd0cc1f, type: 3}
 --- !u!1 &1091239434
 GameObject:
   m_ObjectHideFlags: 0
@@ -4888,8 +4903,8 @@ SceneRoots:
   m_Roots:
   - {fileID: 519420032}
   - {fileID: 619394802}
-  - {fileID: 1510102669}
   - {fileID: 1061437552}
+  - {fileID: 1510102669}
   - {fileID: 224977949}
   - {fileID: 1418656556}
   - {fileID: 1110290697}

@@ -154,6 +154,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "PostEffect",
+            "id": "80b2f706-c657-4368-b1b8-4e936fa36134",
+            "actions": [
+                {
+                    "name": "ChangeEffect",
+                    "type": "Button",
+                    "id": "b081b095-f966-4acb-a2b0-e3053d812885",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "7b98135a-173a-481b-a766-8596a60d0f99",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeEffect",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []
