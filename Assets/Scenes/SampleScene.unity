@@ -5309,13 +5309,10 @@ SceneRoots:
   m_Roots:
   - {fileID: 519420032}
   - {fileID: 619394802}
-<<<<<<< HEAD
-  - {fileID: 1510102669}
-  - {fileID: 229646463}
-=======
->>>>>>> magumaguro/PostEffect
+
   - {fileID: 1061437552}
   - {fileID: 1510102669}
+  - {fileID: 229646463}
   - {fileID: 224977949}
   - {fileID: 1418656556}
   - {fileID: 1110290697}
