@@ -27,6 +27,9 @@ public class CPUPlayerController : PlayerController
     //------Rates------
     //
 
+    //------CPU Flag------
+    protected override bool IsCPU => true;
+
     private void Update()
     {
         UpdateHorizontalMovement();
@@ -106,5 +109,27 @@ public class CPUPlayerController : PlayerController
         int n = Random.Range(1, 101);//1~100のランダムな整数
         if (n <= percentage) return true;
         else return false;
+    }
+
+    protected override void ApplyPlayerSkin()
+    {
+        // ランダムな色を生成
+        SkinData randomSkinData = new SkinData();
+        for (int i = 0; i < 16; i++)
+        {
+            randomSkinData.colors[i] = new Color(
+                Random.value,
+                Random.value,
+                Random.value,
+                1f
+            );
+        }
+
+        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
+        if (skinChangeManager != null)
+        {
+            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+            skinChangeManager.ApplySkin(renderer, randomSkinData);
+        }
     }
 }

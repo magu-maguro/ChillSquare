@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UniRx;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
@@ -34,12 +35,36 @@ public class PlayerController : MonoBehaviour
     [Header("gravity")]
     [SerializeField] private float jumpingGravity = 5f;
     [SerializeField] private float normalGravity = 10f;
+    //---
+    //CPUかどうか
+    protected virtual bool IsCPU => false;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         inputActions = new PlayerInputActions();
         groundCollider = transform.GetChild(0).GetComponent<Collider2D>();
+    }
+
+    private void Start()
+    {
+        ApplyPlayerSkin();
+
+        // SkinChangeManager の Save 通知を購読（CPUは無視）
+        if (!IsCPU)
+        {
+            SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
+            if (skinChangeManager != null)
+            {
+                skinChangeManager.OnSkinSaved
+                    .Subscribe(data =>
+                    {
+                        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+                        skinChangeManager.ApplySkin(renderer, data);
+                    })
+                    .AddTo(this);
+            }
+        }
     }
 
     private void OnEnable()
@@ -57,6 +82,18 @@ public class PlayerController : MonoBehaviour
     private void OnDisable()
     {
         inputActions.Player.Disable();
+    }
+
+    protected virtual void ApplyPlayerSkin()
+    {
+        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
+        if (skinChangeManager != null && PlayerPrefs.HasKey("SkinData"))
+        {
+            string json = PlayerPrefs.GetString("SkinData");
+            SkinData data = JsonUtility.FromJson<SkinData>(json);
+            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+            skinChangeManager.ApplySkin(renderer, data);
+        }
     }
 
     private void FixedUpdate()

@@ -8,7 +8,7 @@ public class SkinChangeManager : MonoBehaviour
     [SerializeField] private GameObject skinPanel;
     [SerializeField] private Transform SquaresParent;
     [SerializeField] private SkinSliderController sliderController;
-    [SerializeField] private SpriteRenderer playerRenderer;
+    //[SerializeField] private SpriteRenderer playerRenderer;
     private Image[] squares = new Image[16];
     private int currentIndex = 0;
     //private IDisposable colorSubscription;
@@ -19,6 +19,8 @@ public class SkinChangeManager : MonoBehaviour
     //外部から購読
     public Subject<int> OnSquareSelected = new Subject<int>();
     public Subject<Color> OnColorChanged = new Subject<Color>();
+
+    public Subject<SkinData> OnSkinSaved = new Subject<SkinData>();
     //パネル表示切替入力
     private PlayerInputActions inputActions;
 
@@ -74,7 +76,9 @@ public class SkinChangeManager : MonoBehaviour
         Debug.Log("SkinData Saved!");
         //Debug.Log(PlayerPrefs.GetString("SkinData"));
 
-        ApplySkin(data);
+        //playerに通知する形にする
+        //ApplySkin(data);
+        OnSkinSaved.OnNext(data);
 
         //フラグ管理
         GameManager.Instance.SetState(GameManager.GameState.Playing);
@@ -93,10 +97,11 @@ public class SkinChangeManager : MonoBehaviour
 
         sliderController.SetRGBWithoutNotify(squares[currentIndex].color);
 
-        ApplySkin(data);
+        //playerの方から呼ぶことに
+        //ApplySkin(data);
     }
 
-    private void ApplySkin(SkinData data)
+    public void ApplySkin(SpriteRenderer renderer, SkinData data)
     {
         //テクスチャ自動生成
         int cellCount = 4;
@@ -109,7 +114,9 @@ public class SkinChangeManager : MonoBehaviour
             for (int xCell = 0; xCell < cellCount; xCell++)
             {
                 int index = yCell * cellCount + xCell;
-                Color col = squares[index].color;
+                //渡されたデータを用いることに
+                //Color col = squares[index].color;
+                Color col = data.colors[index];
 
                 for (int y = 0; y < cellSize; y++)
                 {
@@ -125,7 +132,7 @@ public class SkinChangeManager : MonoBehaviour
 
         //スプライトにしてプレイヤーに反映
         Sprite newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), ppu);
-        playerRenderer.sprite = newSprite;
+        renderer.sprite = newSprite;
     }
     //----------------------------
     private void ToggleSkinPanel()

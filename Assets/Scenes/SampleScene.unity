@@ -463,7 +463,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &76650327
 RectTransform:
   m_ObjectHideFlags: 0
@@ -48831,7 +48831,6 @@ MonoBehaviour:
   skinPanel: {fileID: 1475978767}
   SquaresParent: {fileID: 320163693}
   sliderController: {fileID: 569965624}
-  playerRenderer: {fileID: 1510102668}
 --- !u!114 &1061437554
 MonoBehaviour:
   m_ObjectHideFlags: 0
