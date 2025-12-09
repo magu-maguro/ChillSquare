@@ -116,6 +116,11 @@ public class PlayerController : MonoBehaviour
         //接地判定
         isGrounded = GetComponentInChildren<ForGround>().IsGrounded;
 
+        if(!IsCPU)
+        {
+            Debug.Log("IsGround :" + isGrounded + "jumpPressing :" + jumpPressing);
+        }
+
         //ジャンプ(初速度与えるだけ)
         if (jumpPressed && isGrounded)
         {

@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+        //フレームレートを60に固定
+        Application.targetFrameRate = 60;
     }
 
     public void SetState(GameState newState)
