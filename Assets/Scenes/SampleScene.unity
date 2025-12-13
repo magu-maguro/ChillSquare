@@ -503,7 +503,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051\n\u5E8A\u306E\u30B3\u30E9\u30A4\u30C0\u30FC\u306B\u3081\u308A\u8FBC\u307F\u304C\u3061"
+  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
   m_sharedMaterial: {fileID: -5343046451154712859, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
@@ -49641,7 +49641,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!212 &1510102668
 SpriteRenderer:
