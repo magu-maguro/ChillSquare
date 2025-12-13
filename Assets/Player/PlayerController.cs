@@ -6,11 +6,14 @@ using UniRx;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
+
+    #region input
     //---入力関係
     private PlayerInputActions inputActions;
     private Vector2 moveInput;
     private bool isJumpPressed;//ジャンプキー押した瞬間かどうか
     private bool isJumpPressing;//ジャンプキー押している間かどうか
+    private bool isJumping;//isJumpPressed~着地の間かどうか
 
     protected virtual Vector2 GetMoveInput()
     {
@@ -24,7 +27,7 @@ public class PlayerController : MonoBehaviour
     {
         return isJumpPressing;
     }
-    //---
+    #endregion
     //子オブジェクトのコライダーで接地判定
     private Collider2D groundCollider;
     private bool isGrounded;
@@ -35,6 +38,9 @@ public class PlayerController : MonoBehaviour
     [Header("gravity")]
     [SerializeField] private float jumpingGravity = 5f;
     [SerializeField] private float normalGravity = 10f;
+    [Header("time")]
+    [SerializeField] private float coyoteTime = 0.2f;
+    private float coyoteTimer = 0f;
     //---
     //CPUかどうか
     protected virtual bool IsCPU => false;
@@ -75,6 +81,7 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
         //ジャンプ
+        // ジャンプ入力時は押下フラグのみ立てる。isJumping は実際にジャンプしたときに true にする。
         inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
         inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
     }
@@ -110,21 +117,28 @@ public class PlayerController : MonoBehaviour
         var input = GetMoveInput();
         rb.linearVelocity = new Vector2(input.x * moveSpeed, rb.linearVelocity.y);
 
-        bool jumpPressed = GetJumpPressed();
-        bool jumpPressing = GetJumpPressing();
-
         //接地判定
         isGrounded = GetComponentInChildren<ForGround>().IsGrounded;
+        if (isGrounded) isJumping = false;
+        jumpPressed = GetJumpPressed();
+        jumpPressing = GetJumpPressing();
+        canJump = CanJump();
+        CoyoteControll();
+        Junp();
+    }
 
-        if(!IsCPU)
-        {
-            Debug.Log("IsGround :" + isGrounded + "jumpPressing :" + jumpPressing);
-        }
+    private bool jumpPressed, jumpPressing;
+    private bool canJump;
 
+
+    private void Junp()
+    {
         //ジャンプ(初速度与えるだけ)
-        if (jumpPressed && isGrounded)
+        if (jumpPressed && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpInitialSpeed);
+            // 実際にジャンプが発生したので isJumping を true にする
+            isJumping = true;
         }
 
         //ジャンプキー押していて上昇中のときだけ重力弱め
@@ -138,5 +152,31 @@ public class PlayerController : MonoBehaviour
         }
 
         isJumpPressed = false;
+    }
+
+    private void CoyoteControll()
+    {
+        if (!IsCPU)
+        {
+            if (isGrounded) coyoteTimer = 0f;
+            else
+            {
+                coyoteTimer += Time.deltaTime;
+            }
+            //Debug.Log("coyoteTimer : " + coyoteTimer);
+        }
+    }
+
+    private bool CanJump()
+    {
+        if (isGrounded) return true;
+
+        //接地してなくてもジャンプしてなくてコヨーテタイム内なら跳べる
+        if (!IsCPU && !isJumping && coyoteTimer < coyoteTime)
+        {
+            //Debug.Log("--- canCoyote!!! ---");
+            return true;
+        }
+        else return false;
     }
 }

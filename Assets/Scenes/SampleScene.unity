@@ -503,7 +503,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051\nCPU\u3068\u5E8A\u540C\u6642\u306B\u89E6\u308C\u305F\u3089\u30B8\u30E3\u30F3\u30D7\u3067\u304D\u306A\u304F\u306A\u308B"
+  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051\n\u5E8A\u306E\u30B3\u30E9\u30A4\u30C0\u30FC\u306B\u3081\u308A\u8FBC\u307F\u304C\u3061"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
   m_sharedMaterial: {fileID: -5343046451154712859, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
@@ -1680,7 +1680,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 0.3}
+  m_Size: {x: 0.7, y: 0.3}
   m_EdgeRadius: 0
 --- !u!114 &613263808
 MonoBehaviour:
@@ -49731,6 +49731,7 @@ MonoBehaviour:
   jumpInitialSpeed: 24
   jumpingGravity: 5
   normalGravity: 10
+  coyoteTime: 0.15
 --- !u!1001 &1520518488
 PrefabInstance:
   m_ObjectHideFlags: 0

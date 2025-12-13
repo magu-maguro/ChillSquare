@@ -181,6 +181,8 @@ MonoBehaviour:
   jumpInitialSpeed: 24
   jumpingGravity: 5
   normalGravity: 10
+  coyoteTime: 0.2
+  canMove: 1
 --- !u!1 &2112453603218846507
 GameObject:
   m_ObjectHideFlags: 0
@@ -258,7 +260,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 0.3}
+  m_Size: {x: 0.7, y: 0.3}
   m_EdgeRadius: 0
 --- !u!114 &2512918363097062805
 MonoBehaviour:
