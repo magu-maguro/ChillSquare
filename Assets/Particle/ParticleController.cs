@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// ParticleSystemは用いていない
-/// あくまでGameObject
+/// あくまでGameObjectをparticleと呼んでいるだけ
+/// 各パーティクルの挙動を管理
 /// </summary>
 public class ParticleController : MonoBehaviour
 {

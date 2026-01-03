@@ -48589,6 +48589,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabs:
   - {fileID: 1088172177335820959, guid: de218879cef072449b179317efb8e3d2, type: 3}
+  groundTilemap: {fileID: 1047282009}
+  precomputeFreePositions: 1
+  maxDecideAttempts: 50
   initPoolSize: 100
 --- !u!1 &1091239434
 GameObject:
