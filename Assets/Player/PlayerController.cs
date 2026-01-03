@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
     //子オブジェクトのコライダーで接地判定
     private Collider2D groundCollider;
     private bool isGrounded;
+    // コヨーテタイムを使わなかったときに、空中で1回だけジャンプを許可するフラグ
+    private bool allowAirJumpAfterCoyoteMiss = false;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 10f;
@@ -126,6 +128,7 @@ public class PlayerController : MonoBehaviour
         {
             isJumping = false;
             isDoubleJumped = false;
+            allowAirJumpAfterCoyoteMiss = false;
         }
         jumpPressed = GetJumpPressed();
         jumpPressing = GetJumpPressing();
@@ -144,13 +147,25 @@ public class PlayerController : MonoBehaviour
         if (jumpPressed && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpInitialSpeed);
-            // 既に isJumping なら 二段ジャンプ扱いにする
+            // 空中でのジャンプ（isJumping==false）や二段ジャンプの扱い
             if (isJumping)
             {
+                // すでに空中ジャンプ済み -> これが二段ジャンプ
                 isDoubleJumped = true;
             }
-            // 実際にジャンプが発生したので isJumping を true にする
+            else
+            {
+                // isJumping==false のまま空中ジャンプが起きた場合（コヨーテ未使用で地面離脱後など）
+                // それを二段ジャンプ扱いにして、以降の追加ジャンプを防ぐ
+                if (allowAirJumpAfterCoyoteMiss)
+                {
+                    isDoubleJumped = true;
+                }
+            }
+
+            // ジャンプが発生したので isJumping を true にし、フラグをリセット
             isJumping = true;
+            allowAirJumpAfterCoyoteMiss = false;
         }
 
         //ジャンプキー押していて上昇中のときだけ重力弱め
@@ -175,7 +190,11 @@ public class PlayerController : MonoBehaviour
             {
                 coyoteTimer += Time.deltaTime;
             }
-            //Debug.Log("coyoteTimer : " + coyoteTimer);
+            // コヨーテタイムを過ぎたがジャンプしていない場合、空中で1回だけジャンプを許可する
+            if (!isGrounded && coyoteTimer >= coyoteTime && !isJumping)
+            {
+                allowAirJumpAfterCoyoteMiss = true;
+            }
         }
     }
 
@@ -184,11 +203,15 @@ public class PlayerController : MonoBehaviour
         if (isGrounded) return true;
         // Ground を離れている場合のジャンプ判定
         // - allowDoubleJump が有効なら、すでにジャンプ中かつ二段ジャンプ未使用であれば二段ジャンプを許可
-        // - それ以外はコヨーテタイム内でまだジャンプしていなければ許可
+        // - コヨーテタイム未使用で地面を離れた場合は空中で1回だけジャンプを許可
+        // - それ以外はコヨーテタイム内の初回ジャンプのみ許可
         if (allowDoubleJump)
         {
-            // 二段ジャンプ（空中で既にジャンプ済み）
+            // 空中で既にジャンプ（最初のジャンプ）していて、二段ジャンプ未使用なら許可
             if (isJumping && !isDoubleJumped) return true;
+
+            // コヨーテタイムを過ぎた後に地面離脱時の特別な空中ジャンプ
+            if (allowAirJumpAfterCoyoteMiss && !isDoubleJumped) return true;
 
             // 地面を離れた直後（コヨーテタイム）に初回ジャンプを許可
             if (!IsCPU && coyoteTimer < coyoteTime && !isJumping) return true;
