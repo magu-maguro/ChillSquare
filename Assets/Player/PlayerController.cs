@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private bool isJumpPressed;//ジャンプキー押した瞬間かどうか
     private bool isJumpPressing;//ジャンプキー押している間かどうか
     private bool isJumping;//isJumpPressed~着地の間かどうか
+    private bool isDoubleJumped;//二段ジャンプしたかどうか
 
     protected virtual Vector2 GetMoveInput()
     {
@@ -35,6 +36,7 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 10f;
     [SerializeField] private float jumpInitialSpeed = 24f;
+    [SerializeField] private bool allowDoubleJump = true;
     [Header("gravity")]
     [SerializeField] private float jumpingGravity = 5f;
     [SerializeField] private float normalGravity = 10f;
@@ -105,6 +107,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if(!IsCPU) Debug.Log(CanJump());
         //GameManagerのbool確認
         if (!GameManager.Instance.IsPlayerInputAllowed())
         {
@@ -119,7 +122,11 @@ public class PlayerController : MonoBehaviour
 
         //接地判定
         isGrounded = GetComponentInChildren<ForGround>().IsGrounded;
-        if (isGrounded) isJumping = false;
+        if (isGrounded)
+        {
+            isJumping = false;
+            isDoubleJumped = false;
+        }
         jumpPressed = GetJumpPressed();
         jumpPressing = GetJumpPressing();
         canJump = CanJump();
@@ -137,6 +144,11 @@ public class PlayerController : MonoBehaviour
         if (jumpPressed && canJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpInitialSpeed);
+            // 既に isJumping なら 二段ジャンプ扱いにする
+            if (isJumping)
+            {
+                isDoubleJumped = true;
+            }
             // 実際にジャンプが発生したので isJumping を true にする
             isJumping = true;
         }
@@ -170,13 +182,22 @@ public class PlayerController : MonoBehaviour
     private bool CanJump()
     {
         if (isGrounded) return true;
-
-        //接地してなくてもジャンプしてなくてコヨーテタイム内なら跳べる
-        if (!IsCPU && !isJumping && coyoteTimer < coyoteTime)
+        // Ground を離れている場合のジャンプ判定
+        // - allowDoubleJump が有効なら、すでにジャンプ中かつ二段ジャンプ未使用であれば二段ジャンプを許可
+        // - それ以外はコヨーテタイム内でまだジャンプしていなければ許可
+        if (allowDoubleJump)
         {
-            //Debug.Log("--- canCoyote!!! ---");
-            return true;
+            // 二段ジャンプ（空中で既にジャンプ済み）
+            if (isJumping && !isDoubleJumped) return true;
+
+            // 地面を離れた直後（コヨーテタイム）に初回ジャンプを許可
+            if (!IsCPU && coyoteTimer < coyoteTime && !isJumping) return true;
+
+            return false;
         }
-        else return false;
+
+        // 二段ジャンプを許可しない場合は、コヨーテタイム内でまだジャンプしていなければ許可
+        if (!IsCPU && coyoteTimer < coyoteTime && !isJumping) return true;
+        return false;
     }
 }
