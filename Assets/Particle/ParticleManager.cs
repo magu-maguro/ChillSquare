@@ -31,7 +31,7 @@ public class ParticleManager : MonoBehaviour
         }
 
         SetupPool();
-        SpawnParticlePeriodically(0.3f);
+        SpawnParticlePeriodically(0.1f);
     }
 
     private void SetupPool()
