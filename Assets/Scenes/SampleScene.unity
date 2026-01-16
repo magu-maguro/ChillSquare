@@ -463,7 +463,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &76650327
 RectTransform:
   m_ObjectHideFlags: 0
@@ -503,7 +503,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051"
+  m_text: "TODO:\n\u4F5C\u696D\u524D\u306B\u30D6\u30E9\u30F3\u30C1\u78BA\u8A8D\u3001\n\u5148\u306B\u30DE\u30FC\u30B8\u3068\u304B\u3057\u3066\u304A\u3051\nparticle\u3001setparent\u3057\u305F\u3044\u304B\u3082"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
   m_sharedMaterial: {fileID: -5343046451154712859, guid: 8aba0321dceb78d4c838c65fddd84ad4, type: 2}
@@ -56869,7 +56869,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 617347209242652979, guid: de218879cef072449b179317efb8e3d2, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5555556766520908060, guid: de218879cef072449b179317efb8e3d2, type: 3}
       propertyPath: m_LocalPosition.x
