@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// PlayerInputActionsを使用してメニューの操作
@@ -7,27 +8,56 @@ using UnityEngine;
 public class MenuController : MonoBehaviour
 {
     private PlayerInputActions inputActions;
-    private void Awake()
-    {
-        inputActions = new PlayerInputActions();
-    }
+
+    private bool isMenuOpen = false;
+
+
     private void OnEnable()
     {
-        inputActions.Menu.Enable();
+        inputActions = InputManager.Instance.GetInputActions();
+        if (inputActions == null) return;
+        inputActions.Menu.Disable();
 
-        //開閉
-        inputActions.Menu.OpenClose.performed += ctx =>
+        //開
+        inputActions.Player.OpenMenu.performed += ctx =>
         {
-            Debug.Log("Open/Close Menu");
+            if (!isMenuOpen) OpenMenu();
+        };
+        //閉
+        inputActions.Menu.CloseMenu.performed += ctx =>
+        {
+            if (isMenuOpen) CloseMenu();
         };
     }
-    void Start()
+
+    private void OnDisable()
     {
-        
+        if (inputActions == null) return;
+
+        inputActions.Player.OpenMenu.performed -= ctx =>
+        {
+            if (!isMenuOpen) OpenMenu();
+        };
+        inputActions.Menu.CloseMenu.performed -= ctx =>
+        {
+            if (isMenuOpen) CloseMenu();
+        };
     }
 
-    void Update()
+    private void OpenMenu()
     {
-        
+        Debug.Log("Open Menu");
+        isMenuOpen = true;
+        inputActions.Menu.Enable();
+        inputActions.Player.Disable();
+        // メニューUIの表示などの処理をここに追加
+    }
+    private void CloseMenu()
+    {
+        Debug.Log("Close Menu");
+        isMenuOpen = false;
+        inputActions.Menu.Disable();
+        inputActions.Player.Enable();
+        // メニューUIの非表示などの処理をここに追加
     }
 }

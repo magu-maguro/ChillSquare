@@ -23,6 +23,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "OpenMenu",
+                    "type": "Button",
+                    "id": "2a2ca3aa-7c52-4a9a-a0b8-69c676c6cdb9",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -124,6 +133,17 @@
                     "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1cad66ad-a66f-4b17-b4ee-549dc7925f5b",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OpenMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -188,7 +208,7 @@
             "id": "e8d5a158-4e6f-468d-900d-d546d361ab94",
             "actions": [
                 {
-                    "name": "OpenClose",
+                    "name": "CloseMenu",
                     "type": "Button",
                     "id": "a99dbd90-71a6-4b98-87fc-1d9aae044283",
                     "expectedControlType": "",
@@ -205,7 +225,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "OpenClose",
+                    "action": "CloseMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

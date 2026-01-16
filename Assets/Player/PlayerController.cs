@@ -52,7 +52,6 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        inputActions = new PlayerInputActions();
         groundCollider = transform.GetChild(0).GetComponent<Collider2D>();
     }
 
@@ -79,6 +78,9 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        inputActions = InputManager.Instance.GetInputActions();
+        if (inputActions == null) return;
+
         inputActions.Player.Enable();
 
         //横移動
@@ -92,7 +94,13 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
+        if (inputActions == null) return;
+
         inputActions.Player.Disable();
+        inputActions.Player.Move.performed -= ctx => moveInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Move.canceled -= ctx => moveInput = Vector2.zero;
+        inputActions.Player.Jump.performed -= ctx => { isJumpPressed = true; isJumpPressing = true; };
+        inputActions.Player.Jump.canceled -= ctx => isJumpPressing = false;
     }
 
     protected virtual void ApplyPlayerSkin()
@@ -109,7 +117,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(!IsCPU) Debug.Log(CanJump());
+        //if(!IsCPU) Debug.Log(CanJump());
         //GameManagerのbool確認
         if (!GameManager.Instance.IsPlayerInputAllowed())
         {
