@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// ParticleSystemは用いていない
@@ -12,6 +13,7 @@ public class ParticleController : MonoBehaviour
 
     public void Release()
     {
+        particleManager.CountParticle(1);
         particleManager.ReturnToPool(this);
     }
 
@@ -21,5 +23,16 @@ public class ParticleController : MonoBehaviour
         {
             Release();
         }
+    }
+
+    /// <summary>
+    /// HSVのHをランダムに選択
+    /// </summary>
+    public void SetColor()
+    {
+        Light2D light = GetComponent<Light2D>();
+        float h = Random.Range(0f, 1f);
+        Color color = Color.HSVToRGB(h, 1f, 1f);
+        light.color = color;
     }
 }

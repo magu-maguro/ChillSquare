@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Timeline;
 using UnityEngine.Tilemaps;
+using TMPro;
 
 /// <summary>
 /// Object Poolを使用してParticleControllerを管理
@@ -23,6 +24,10 @@ public class ParticleManager : MonoBehaviour
     private bool isSpawning = false;
     private float spawnInterval = 0f;
 
+    //UI
+    [SerializeField] private TextMeshProUGUI CountText;
+    private int TotalParticles = 0;
+
     void Start()
     {
         if (precomputeFreePositions)
@@ -32,6 +37,7 @@ public class ParticleManager : MonoBehaviour
 
         SetupPool();
         SpawnParticlePeriodically(0.1f);
+        CountParticle(0);
     }
 
     private void SetupPool()
@@ -43,6 +49,8 @@ public class ParticleManager : MonoBehaviour
             int index = 0;
             instance = Instantiate(prefabs[index]);
             instance.ParticleManager = this;
+            instance.transform.SetParent(this.transform);
+            instance.SetColor();
             
             instance.transform.position = DecideRandomPos();
             // プレインスタンスは非アクティブでプールへ入れる
@@ -64,6 +72,12 @@ public class ParticleManager : MonoBehaviour
 
         // プールが空の場合は新規生成しない（呼び続けられるのを防ぐ）
         return null;
+    }
+
+    public void CountParticle(int n)
+    {
+        TotalParticles += n;
+        CountText.text = "Total Particles: " + TotalParticles;
     }
 
     public void ReturnToPool(ParticleController instance)
@@ -101,6 +115,7 @@ public class ParticleManager : MonoBehaviour
             CancelInvoke(nameof(TrySpawnParticle));
             isSpawning = false;
         }
+        else p.SetColor();
     }
     #endregion
 
