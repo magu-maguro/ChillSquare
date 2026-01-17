@@ -10,6 +10,7 @@ public class MenuController : MonoBehaviour
     private PlayerInputActions inputActions;
 
     private bool isMenuOpen = false;
+    [SerializeField] private GameObject MenuRoot;
 
 
     private void OnEnable()
@@ -51,6 +52,7 @@ public class MenuController : MonoBehaviour
         inputActions.Menu.Enable();
         inputActions.Player.Disable();
         // メニューUIの表示などの処理をここに追加
+        MenuRoot.SetActive(true);
     }
     private void CloseMenu()
     {
@@ -59,5 +61,6 @@ public class MenuController : MonoBehaviour
         inputActions.Menu.Disable();
         inputActions.Player.Enable();
         // メニューUIの非表示などの処理をここに追加
+        MenuRoot.SetActive(false);
     }
 }

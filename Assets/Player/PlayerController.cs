@@ -59,6 +59,23 @@ public class PlayerController : MonoBehaviour
     {
         ApplyPlayerSkin();
 
+        // InputActionsを初期化（すべてのAwake()完了後に呼ばれるため安全）
+        if (InputManager.Instance != null)
+        {
+            inputActions = InputManager.Instance.GetInputActions();
+            if (inputActions != null)
+            {
+                inputActions.Player.Enable();
+
+                //横移動
+                inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+                inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+                //ジャンプ
+                inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
+                inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
+            }
+        }
+
         // SkinChangeManager の Save 通知を購読（CPUは無視）
         if (!IsCPU)
         {
@@ -74,22 +91,6 @@ public class PlayerController : MonoBehaviour
                     .AddTo(this);
             }
         }
-    }
-
-    private void OnEnable()
-    {
-        inputActions = InputManager.Instance.GetInputActions();
-        if (inputActions == null) return;
-
-        inputActions.Player.Enable();
-
-        //横移動
-        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
-        //ジャンプ
-        // ジャンプ入力時は押下フラグのみ立てる。isJumping は実際にジャンプしたときに true にする。
-        inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
-        inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
     }
 
     private void OnDisable()
