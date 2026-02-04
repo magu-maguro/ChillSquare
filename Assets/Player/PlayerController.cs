@@ -1,11 +1,19 @@
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UniRx;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     private Rigidbody2D rb;
+    // ネットワーク同期用
+    private Vector3 networkPosition;
+    private Vector2 networkVelocity;
+    [SerializeField] private float networkLerpSpeed = 10f;
+    // このオブジェクトがこのクライアントの所有か
+    private bool isLocalOwner = false;
 
     #region input
     //---入力関係
@@ -53,27 +61,41 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         groundCollider = transform.GetChild(0).GetComponent<Collider2D>();
+        networkPosition = transform.position;
     }
 
     private void Start()
     {
         ApplyPlayerSkin();
 
-        // InputActionsを初期化（すべてのAwake()完了後に呼ばれるため安全）
-        if (InputManager.Instance != null)
-        {
-            inputActions = InputManager.Instance.GetInputActions();
-            if (inputActions != null)
-            {
-                inputActions.Player.Enable();
+        // 所有判定（Start時点での判定）
+        isLocalOwner = (photonView == null) || photonView.IsMine;
 
-                //横移動
-                inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-                inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
-                //ジャンプ
-                inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
-                inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
+        // ローカル所有者のみで入力を登録する（InputActionsはシングルトンの可能性があるため、
+        // 非所有者でDisableすると同クライアントの他インスタンスに影響する）
+        if (isLocalOwner)
+        {
+            if (InputManager.Instance != null)
+            {
+                inputActions = InputManager.Instance.GetInputActions();
+                if (inputActions != null)
+                {
+                    inputActions.Player.Enable();
+                    //横移動
+                    inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+                    inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+                    //ジャンプ
+                    inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
+                    inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
+                }
             }
+        }
+        else
+        {
+            // 非オーナーはローカル物理を止めて受信座標に従う
+            rb.simulated = false;
+            foreach (var col in GetComponents<Collider2D>()) col.isTrigger = true;
+            networkPosition = transform.position;
         }
 
         // SkinChangeManager の Save 通知を購読（CPUは無視）
@@ -93,15 +115,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnDisable()
+    public override void OnDisable()
     {
+        if (!isLocalOwner) return;
         if (inputActions == null) return;
 
         inputActions.Player.Disable();
-        inputActions.Player.Move.performed -= ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled -= ctx => moveInput = Vector2.zero;
-        inputActions.Player.Jump.performed -= ctx => { isJumpPressed = true; isJumpPressing = true; };
-        inputActions.Player.Jump.canceled -= ctx => isJumpPressing = false;
     }
 
     protected virtual void ApplyPlayerSkin()
@@ -120,6 +139,13 @@ public class PlayerController : MonoBehaviour
     {
         //if(!IsCPU) Debug.Log(CanJump());
         //GameManagerのbool確認
+                // 自分が所有していないプレイヤーは受信座標を補間して追従する
+                if (photonView != null && !photonView.IsMine)
+                {
+                    transform.position = Vector3.Lerp(transform.position, networkPosition, Time.fixedDeltaTime * networkLerpSpeed);
+                    return;
+                }
+        
         if (!GameManager.Instance.IsPlayerInputAllowed())
         {
             rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
@@ -231,5 +257,24 @@ public class PlayerController : MonoBehaviour
         // 二段ジャンプを許可しない場合は、コヨーテタイム内でまだジャンプしていなければ許可
         if (!IsCPU && coyoteTimer < coyoteTime && !isJumping) return true;
         return false;
+    }
+
+    // Photon PUN のシリアライズで位置と速度を同期
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // オーナーが送信
+            stream.SendNext(transform.position);
+            stream.SendNext(rb.linearVelocity);
+        }
+        else
+        {
+            // 他クライアントは受信して補間に使う
+            var pos = (Vector3)stream.ReceiveNext();
+            var vel = (Vector2)stream.ReceiveNext();
+            networkPosition = pos;
+            networkVelocity = vel;
+        }
     }
 }
