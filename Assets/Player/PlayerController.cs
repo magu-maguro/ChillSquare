@@ -66,8 +66,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Start()
     {
-        ApplyPlayerSkin();
-
         // 所有判定（Start時点での判定）
         isLocalOwner = (photonView == null) || photonView.IsMine;
 
@@ -75,6 +73,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         // 非所有者でDisableすると同クライアントの他インスタンスに影響する）
         if (isLocalOwner)
         {
+            ApplyPlayerSkin();
             if (InputManager.Instance != null)
             {
                 inputActions = InputManager.Instance.GetInputActions();
@@ -93,8 +92,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         else
         {
             // 非オーナーはローカル物理を止めて受信座標に従う
-            rb.simulated = false;
-            foreach (var col in GetComponents<Collider2D>()) col.isTrigger = true;
+            //rb.simulated = false;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            //foreach (var col in GetComponents<Collider2D>()) col.isTrigger = true;
             networkPosition = transform.position;
         }
 
