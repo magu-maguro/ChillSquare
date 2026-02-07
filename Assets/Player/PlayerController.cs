@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UniRx;
 using Unity.VisualScripting;
+using Unity.Cinemachine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
@@ -74,6 +75,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (isLocalOwner)
         {
             ApplyPlayerSkin();
+            //CinemachineCamera TrackingTargetに自身を設定
+            CinemachineCamera vcam = FindAnyObjectByType<CinemachineCamera>();
+            if (vcam != null)
+            {
+                vcam.Follow = this.transform;
+            }
             if (InputManager.Instance != null)
             {
                 inputActions = InputManager.Instance.GetInputActions();
