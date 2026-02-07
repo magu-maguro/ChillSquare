@@ -107,8 +107,19 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 skinChangeManager.OnSkinSaved
                     .Subscribe(data =>
                     {
-                        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-                        skinChangeManager.ApplySkin(renderer, data);
+                        // スキンデータをJSONに変換
+                        string json = JsonUtility.ToJson(data);
+                        // RPC(AllBuffered)でスキンを全クライアントに反映
+                        if (photonView != null && isLocalOwner)
+                        {
+                            photonView.RPC("RPC_ApplyPlayerSkin", RpcTarget.AllBuffered, json);
+                        }
+                        else if (isLocalOwner)
+                        {
+                            // PhotonViewがない場合は直接適用
+                            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+                            skinChangeManager.ApplySkin(renderer, data);
+                        }
                     })
                     .AddTo(this);
             }
@@ -125,11 +136,35 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     protected virtual void ApplyPlayerSkin()
     {
+        // ローカルオーナーのみ実行
+        if (!isLocalOwner) return;
+
         SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
         if (skinChangeManager != null && PlayerPrefs.HasKey("SkinData"))
         {
             string json = PlayerPrefs.GetString("SkinData");
-            SkinData data = JsonUtility.FromJson<SkinData>(json);
+            // RPC(AllBuffered)でスキンを全クライアントに反映
+            if (photonView != null)
+            {
+                photonView.RPC("RPC_ApplyPlayerSkin", RpcTarget.AllBuffered, json);
+            }
+            else
+            {
+                // PhotonViewがない場合は直接適用
+                SkinData data = JsonUtility.FromJson<SkinData>(json);
+                SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+                skinChangeManager.ApplySkin(renderer, data);
+            }
+        }
+    }
+
+    [PunRPC]
+    void RPC_ApplyPlayerSkin(string skinDataJson)
+    {
+        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
+        if (skinChangeManager != null)
+        {
+            SkinData data = JsonUtility.FromJson<SkinData>(skinDataJson);
             SpriteRenderer renderer = GetComponent<SpriteRenderer>();
             skinChangeManager.ApplySkin(renderer, data);
         }
