@@ -10,11 +10,13 @@ public class ParticleController : MonoBehaviour
 {
     private ParticleManager particleManager;
     public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
+    // 同期用ID（マスターが発行する）
+    public int ParticleId { get; set; } = -1;
 
     public void Release()
     {
-        particleManager.CountParticle(1);
-        particleManager.ReturnToPool(this);
+        // プレイヤーに触れたときはマスターへ「回収」を通知させる
+        particleManager.NotifyCollected(this);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -33,6 +35,12 @@ public class ParticleController : MonoBehaviour
         Light2D light = GetComponent<Light2D>();
         float h = Random.Range(0f, 1f);
         Color color = Color.HSVToRGB(h, 1f, 1f);
+        light.color = color;
+    }
+
+    public void SetColor(Color color)
+    {
+        Light2D light = GetComponent<Light2D>();
         light.color = color;
     }
 }
