@@ -13,17 +13,21 @@ public class ParticleController : MonoBehaviour
     // 同期用ID（マスターが発行する）
     public int ParticleId { get; set; } = -1;
 
-    public void Release()
+    public void Release(int n)
     {
         // プレイヤーに触れたときはマスターへ「回収」を通知させる
-        particleManager.NotifyCollected(this);
+        particleManager.NotifyCollected(this, n);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            Release();
+            Release(0);
+        }
+        else if (collision.gameObject.CompareTag("CPU"))
+        {
+            Release(1);
         }
     }
 

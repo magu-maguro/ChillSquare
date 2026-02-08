@@ -1,4 +1,5 @@
 using UnityEngine;
+using Photon.Pun;
 
 public class CPUPlayerController : PlayerController
 {
@@ -115,7 +116,7 @@ public class CPUPlayerController : PlayerController
 
     protected override void ApplyPlayerSkin()
     {
-        // ランダムな色を生成
+        // ランダムな色を生成して、マスターが生成している場合は RPC で全クライアントに反映する
         SkinData randomSkinData = new SkinData();
         for (int i = 0; i < 16; i++)
         {
@@ -128,10 +129,32 @@ public class CPUPlayerController : PlayerController
         }
 
         SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
-        if (skinChangeManager != null)
+        if (skinChangeManager == null) return;
+
+        string json = JsonUtility.ToJson(randomSkinData);
+        // PhotonView を持ち、かつオーナー（通常はマスター）であれば RPC(AllBuffered) で配信
+        if (photonView != null && photonView.IsMine)
         {
+            photonView.RPC("RPC_ApplyPlayerSkin", RpcTarget.AllBuffered, json);
+        }
+        else if (photonView == null)
+        {
+            // Photon 未使用のローカル実行時
             SpriteRenderer renderer = GetComponent<SpriteRenderer>();
             skinChangeManager.ApplySkin(renderer, randomSkinData);
+        }
+    }
+
+    [PunRPC]
+
+    void RPC_ApplyPlayerSkin(string skinDataJson)
+    {
+        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
+        if (skinChangeManager != null)
+        {
+            SkinData data = JsonUtility.FromJson<SkinData>(skinDataJson);
+            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+            skinChangeManager.ApplySkin(renderer, data);
         }
     }
 }

@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             ApplyPlayerSkin();
             //CinemachineCamera TrackingTargetに自身を設定
             CinemachineCamera vcam = FindAnyObjectByType<CinemachineCamera>();
-            if (vcam != null)
+            if (vcam != null && !IsCPU)
             {
                 vcam.Follow = this.transform;
             }

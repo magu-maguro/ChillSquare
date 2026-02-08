@@ -205,7 +205,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     /// クライアントがパーティクルに触れたとき（回収したとき）に呼ばれる。
     /// 実際の破棄（ReturnToPool）はマスターの判断で全員へ通知される。
     /// </summary>
-    public void NotifyCollected(ParticleController instance)
+    public void NotifyCollected(ParticleController instance, int n)
     {
         if (instance == null) return;
         
@@ -221,17 +221,14 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            Debug.Log("aaaaaaaaaaaaaaaaaaa");
             // マスター自身が回収した場合はグローバルカウントを更新して全体へ通知
             totalCollected++;
-            if (pv != null) pv.RPC(nameof(RPC_DestroyParticle), RpcTarget.AllBuffered, instance.ParticleId, PhotonNetwork.LocalPlayer.ActorNumber, totalCollected);
-            Debug.Log("ffffffffffffffff");
+            if (pv != null) pv.RPC(nameof(RPC_DestroyParticle), RpcTarget.AllBuffered, instance.ParticleId, PhotonNetwork.LocalPlayer.ActorNumber, totalCollected, n);
         }
         else
         {
-            Debug.Log("bbbbbbbbbbbbbbbbbbbbb");
             // マスターへ破棄要求を送る
-            if (pv != null) pv.RPC(nameof(RPC_RequestDestroy), RpcTarget.MasterClient, instance.ParticleId, PhotonNetwork.LocalPlayer.ActorNumber);
+            if (pv != null) pv.RPC(nameof(RPC_RequestDestroy), RpcTarget.MasterClient, instance.ParticleId, PhotonNetwork.LocalPlayer.ActorNumber, n);
         }
     }
 
@@ -252,7 +249,6 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     {
         // マスターだけが定期的なスポーンを決定する
         if (!PhotonNetwork.IsMasterClient) return;
-        Debug.Log(">>>Master<<<");
 
         // マスターはスポーン判定を行い、全員へ通知する
         Vector2 randomPos = DecideRandomPos();
@@ -275,7 +271,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
                 if (!groundTilemap.HasTile(cell))
                 {
                     Vector3 world = groundTilemap.GetCellCenterWorld(cell);
-                    if (world.x >= -38f && world.x <= 38f && world.y >= -15f && world.y <= 10f)
+                    if (world.x >= -38f && world.x <= 38f && world.y >= -15f && world.y <= 20f)
                     {
                         freePositions.Add(world);
                     }
@@ -363,31 +359,29 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    private void RPC_RequestDestroy(int id, int requesterActor)
+    private void RPC_RequestDestroy(int id, int requesterActor, int n)
     {
-        Debug.Log("dddddddddddddddddddd");
         // Master に届く
         if (!PhotonNetwork.IsMasterClient) return;
         // マスター側でグローバルカウントを更新して、収集者情報と共に全員へ通知する
         totalCollected++;
-        if (pv != null) pv.RPC(nameof(RPC_DestroyParticle), RpcTarget.AllBuffered, id, requesterActor, totalCollected);
+        if (pv != null) pv.RPC(nameof(RPC_DestroyParticle), RpcTarget.AllBuffered, id, requesterActor, totalCollected, n);
     }
 
     [PunRPC]
-    private void RPC_DestroyParticle(int id, int collectorActor, int newTotal)
+    private void RPC_DestroyParticle(int id, int collectorActor, int newTotal, int n)
     {
-        Debug.Log("cccccccccccccccccccccc");
-        LocalDestroy(id, collectorActor, newTotal);
+        LocalDestroy(id, collectorActor, newTotal, n);
     }
 
-    private void LocalDestroy(int id, int collectorActor, int newTotal)
+    private void LocalDestroy(int id, int collectorActor, int newTotal, int n)
     {
         if (activeById.TryGetValue(id, out var p))
         {
             ReturnToPool(p);
             // カウントを同期
             totalCollected = newTotal;
-            if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.ActorNumber == collectorActor)
+            if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.ActorNumber == collectorActor && n == 0)
             {
                 myCollected++;
             }
