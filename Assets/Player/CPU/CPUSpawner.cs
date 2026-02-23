@@ -38,7 +38,7 @@ public class CPUSpawner : MonoBehaviourPunCallbacks
             float delay = Random.Range(minSpawnDelay, maxSpawnDelay);
             yield return new WaitForSeconds(delay);
             Vector3 spawnPos = GetSpawnPosition();
-            PhotonNetwork.Instantiate(cpuPrefabName, spawnPos, Quaternion.identity);
+            PhotonNetwork.InstantiateRoomObject(cpuPrefabName, spawnPos, Quaternion.identity);
         }
     }
 

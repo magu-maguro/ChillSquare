@@ -1,39 +1,114 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using Photon.Pun;
 
 /// <summary>
 /// ParticleSystemは用いていない
 /// あくまでGameObjectをparticleと呼んでいるだけ
 /// 各パーティクルの挙動を管理
 /// </summary>
-public class ParticleController : MonoBehaviour
+public class ParticleController : MonoBehaviour, IPunObservable
 {
     private ParticleManager particleManager;
     public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
     // 同期用ID（マスターが発行する）
     public int ParticleId { get; set; } = -1;
 
+    private PhotonView pv;
+
+    private bool isActiveState = false;
+
+    private Renderer rend;
+    private Collider2D col;
+    private Light2D light2d;
+
+    public bool IsVisible {get; private set;} = true;
+
+    void Awake()
+    {
+        pv = GetComponent<PhotonView>();
+        rend = GetComponent<SpriteRenderer>();
+        col = GetComponent<Collider2D>();
+        light2d = GetComponent<Light2D>();
+        if(particleManager == null)
+        {
+            particleManager = FindFirstObjectByType<ParticleManager>();
+            this.transform.SetParent(particleManager.transform);
+        }
+    }
+
+    void OnEnable()
+    {
+        light2d.color = DecideRandomColor();
+    }
+
+    public void SetVisible(bool visible)
+    {
+        IsVisible = visible;
+
+        if(rend != null)
+        {
+            rend.enabled = visible;
+        }
+        if(col != null)
+        {
+            col.enabled = visible;
+        }
+        if(light2d != null)
+        {
+            light2d.enabled = visible;
+        }
+    }
+
+    /// <summary>
+    /// アクティブ状態を設定し、ネットワークで同期する（SetVisible()も含む）
+    /// </summary>
+    public void SetActive(bool active)
+    {
+        isActiveState = active;
+        SetVisible(active);
+    }
+
+    public void Initialize(int id, Vector2 pos, Color color)
+    {
+        ParticleId = id;
+        transform.position = pos;
+        SetColor(color);
+
+        isActiveState = true;
+        gameObject.SetActive(true);
+    }
+
     public void Release(int n)
     {
-        // プレイヤーに触れたときはマスターへ「回収」を通知させる
-        particleManager.NotifyCollected(this, n);
+        if(particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        // 非表示状態では衝突判定を無視
+        if (!IsVisible) return;
+
+        if (collision.CompareTag("Player"))
         {
             Release(0);
         }
-        else if (collision.gameObject.CompareTag("CPU"))
+        else if (collision.CompareTag("CPU"))
         {
             Release(1);
         }
     }
 
+    public void Deactivate()
+    {
+        isActiveState = false;
+        gameObject.SetActive(false);
+    }
+
     /// <summary>
     /// HSVのHをランダムに選択
     /// </summary>
+    /*
     public void SetColor()
     {
         Light2D light = GetComponent<Light2D>();
@@ -41,10 +116,47 @@ public class ParticleController : MonoBehaviour
         Color color = Color.HSVToRGB(h, 1f, 1f);
         light.color = color;
     }
+    */
+
+    private Color DecideRandomColor()
+    {
+        float h = Random.Range(0f, 1f);
+        Color color = Color.HSVToRGB(h, 1f, 1f);
+        return color;
+    }
 
     public void SetColor(Color color)
     {
         Light2D light = GetComponent<Light2D>();
         light.color = color;
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting)
+        {
+            // マスターが他クライアントに送信：位置と表示状態
+            stream.SendNext(transform.position);
+            stream.SendNext(isActiveState);
+        }
+        else
+        {
+            // 他クライアントが受信：位置と表示状態を適用
+            Vector3 receivedPos = (Vector3)stream.ReceiveNext();
+            bool receivedActiveState = (bool)stream.ReceiveNext();
+            
+            // 位置を同期
+            if (Vector3.Distance(transform.position, receivedPos) > 0.01f)
+            {
+                transform.position = receivedPos;
+            }
+            
+            // 表示状態を同期
+            if (isActiveState != receivedActiveState)
+            {
+                isActiveState = receivedActiveState;
+                SetVisible(isActiveState);
+            }
+        }
     }
 }

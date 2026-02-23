@@ -141,6 +141,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         inputActions.Player.Disable();
     }
 
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        base.OnMasterClientSwitched(newMasterClient);
+        RefreshOwnershipState();
+    }
+
     protected virtual void ApplyPlayerSkin()
     {
         // ローカルオーナーのみ実行
@@ -181,12 +187,13 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         //if(!IsCPU) Debug.Log(CanJump());
         //GameManagerのbool確認
-                // 自分が所有していないプレイヤーは受信座標を補間して追従する
-                if (photonView != null && !photonView.IsMine)
-                {
-                    transform.position = Vector3.Lerp(transform.position, networkPosition, Time.fixedDeltaTime * networkLerpSpeed);
-                    return;
-                }
+        RefreshOwnershipState();
+        // 自分が所有していないプレイヤーは受信座標を補間して追従する
+        if (photonView != null && !photonView.IsMine)
+        {
+            transform.position = Vector3.Lerp(transform.position, networkPosition, Time.fixedDeltaTime * networkLerpSpeed);
+            return;
+        }
         
         if (!GameManager.Instance.IsPlayerInputAllowed())
         {
@@ -212,6 +219,24 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         canJump = CanJump();
         CoyoteControll();
         Junp();
+    }
+
+    private void RefreshOwnershipState()
+    {
+        bool nowLocalOwner = (photonView == null) || photonView.IsMine;
+        if (nowLocalOwner == isLocalOwner) return;
+
+        isLocalOwner = nowLocalOwner;
+        if (isLocalOwner)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            networkPosition = transform.position;
+        }
     }
 
     private bool jumpPressed, jumpPressing;

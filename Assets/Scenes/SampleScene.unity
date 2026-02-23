@@ -726,7 +726,9 @@ MonoBehaviour:
   groundTilemap: {fileID: 1047282009}
   precomputeFreePositions: 1
   maxDecideAttempts: 50
-  initPoolSize: 300
+  initPoolSize: 10
+  maxParticleCount: 100
+  spawnIntervalSeconds: 1
   CountText: {fileID: 479205846}
 --- !u!4 &236556463
 Transform:
