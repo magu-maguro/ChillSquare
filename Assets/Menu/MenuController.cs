@@ -5,6 +5,7 @@ using System.Collections;
 /// <summary>
 /// PlayerInputActionsを使用してメニューの操作
 /// Menuが開かれている間はプレイヤーの操作を受け付けない
+/// TabSelector, ItemSelectorに指示
 /// </summary>
 public class MenuController : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class MenuController : MonoBehaviour
 
     private bool isMenuOpen = false;
     [SerializeField] private GameObject MenuRoot;
+    [SerializeField] private TabSelector tabSelector;
 
     // Navigate 用
     private Vector2 currentNavigate;
@@ -97,6 +99,17 @@ public class MenuController : MonoBehaviour
     private void HandleNavigateOnce(Vector2 direction)
     {
         // 上下左右1回分の処理を書く
+        //左右：Tabの切り替え
+        if (direction.x > 0.5f) // 右
+        {
+            //Debug.Log("Navigate Right");
+            tabSelector.ChangeTab(1);
+        }
+        else if (direction.x < -0.5f) // 左
+        {
+            //Debug.Log("Navigate Left");
+            tabSelector.ChangeTab(-1);
+        }
     }
 
     private void StartNavigateRepeat()
