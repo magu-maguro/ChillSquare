@@ -15,6 +15,8 @@ public class CPUSpawner : MonoBehaviourPunCallbacks
 
     private PhotonView pv;
 
+    [SerializeField] private bool allowSpawn;
+
     void Start()
     {
         pv = GetComponent<PhotonView>();
@@ -24,7 +26,7 @@ public class CPUSpawner : MonoBehaviourPunCallbacks
     {
         base.OnJoinedRoom();
         // マスタークライアントだけが CPU を生成
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient && allowSpawn)
         {
             StartCoroutine(SpawnCPUsCoroutine());
         }

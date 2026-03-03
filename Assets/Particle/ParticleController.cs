@@ -17,6 +17,10 @@ public class ParticleController : MonoBehaviour, IPunObservable
     private PhotonView pv;
 
     private bool isActiveState = false;
+    private Vector3 lastSentPosition;
+    private bool lastSentActiveState;
+    private bool hasSentInitialState = false;
+    private const float positionSyncThresholdSqr = 0.0001f; // 0.01f^2
 
     private Renderer rend;
     private Collider2D col;
@@ -30,6 +34,8 @@ public class ParticleController : MonoBehaviour, IPunObservable
         rend = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         light2d = GetComponent<Light2D>();
+        lastSentPosition = transform.position;
+        lastSentActiveState = isActiveState;
         if(particleManager == null)
         {
             particleManager = FindFirstObjectByType<ParticleManager>();
@@ -81,6 +87,16 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
     public void Release(int n)
     {
+        // 即座にローカルで非表示にして重複取得を防止（楽観的ロック）
+        if (!IsVisible) return; // すでに取得リクエスト送信済み
+
+        // マスター自身はこの直後に同インスタンスで判定するため、先に非表示にしない
+        // （先に非表示にすると MasterHandleCollect 側の IsVisible ガードで弾かれる）
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            SetVisible(false);
+        }
+        
         if(particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n);
     }
 
@@ -135,9 +151,20 @@ public class ParticleController : MonoBehaviour, IPunObservable
     {
         if(stream.IsWriting)
         {
-            // マスターが他クライアントに送信：位置と表示状態
-            stream.SendNext(transform.position);
-            stream.SendNext(isActiveState);
+            // 変化があったときのみ送信して帯域を節約する
+            Vector3 currentPosition = transform.position;
+            bool positionChanged = (currentPosition - lastSentPosition).sqrMagnitude > positionSyncThresholdSqr;
+            bool activeStateChanged = isActiveState != lastSentActiveState;
+
+            if (!hasSentInitialState || positionChanged || activeStateChanged)
+            {
+                stream.SendNext(currentPosition);
+                stream.SendNext(isActiveState);
+
+                lastSentPosition = currentPosition;
+                lastSentActiveState = isActiveState;
+                hasSentInitialState = true;
+            }
         }
         else
         {

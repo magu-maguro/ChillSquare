@@ -703,7 +703,7 @@ GameObject:
   - component: {fileID: 236556462}
   - component: {fileID: 236556464}
   m_Layer: 0
-  m_Name: ParticleManager
+  m_Name: '>>>ParticleManager<<<'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58170,7 +58170,7 @@ GameObject:
   - component: {fileID: 1061437558}
   - component: {fileID: 1061437559}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: '>>>GameManager<<<'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58272,6 +58272,7 @@ MonoBehaviour:
   maxCPUs: 3
   minSpawnDelay: 1
   maxSpawnDelay: 4
+  allowSpawn: 0
 --- !u!114 &1061437559
 MonoBehaviour:
   m_ObjectHideFlags: 0

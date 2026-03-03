@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Tilemaps;
@@ -40,10 +41,17 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
     //UI
     [SerializeField] private TextMeshProUGUI CountText;
-    // 全クライアントが取得したパーティクルの総数（マスターが管理して配布）
+    // 全クライアントが取得したパーティクルの総数（Room Custom Properties で管理）
     private int totalCollected = 0;
-    // 自分が取得したパーティクルの数（ローカル）
+    // 自分が取得したパーティクルの数（Player Custom Properties で管理）
     private int myCollected = 0;
+
+    // Custom Properties のキー
+    private const string TOTAL_COLLECTED_KEY = "totalCollected";
+    private const string MY_COLLECTED_KEY = "myCollected";
+
+    // マスターが各プレイヤーのカウントをローカルで追跡（複数リクエスト同時処理対策）
+    private Dictionary<int, int> masterPlayerCollectCounts = new Dictionary<int, int>();
 
     void Start()
     {
@@ -65,11 +73,46 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     {
         base.OnJoinedRoom();
         pv = GetComponent<PhotonView>();
+        
+        // Room Properties から totalCollected を取得
+        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(TOTAL_COLLECTED_KEY, out var totalObj))
+        {
+            totalCollected = (int)totalObj;
+        }
+        else
+        {
+            totalCollected = 0;
+        }
+
+        // Player Properties から myCollected を取得
+        if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var myObj))
+        {
+            myCollected = (int)myObj;
+        }
+        else
+        {
+            myCollected = 0;
+        }
+
+        UpdateCountUI();
+
         if (PhotonNetwork.IsMasterClient)
         {
             Debug.Log("OnJoinedRoom: I'm master, starting periodic spawn.");
             SetupPool();
             SpawnParticlePeriodically(spawnIntervalSeconds);
+            
+            // マスター側で各プレイヤーのカウントを初期化
+            masterPlayerCollectCounts.Clear();
+            foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
+            {
+                int count = 0;
+                if (player.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var countObj))
+                {
+                    count = (int)countObj;
+                }
+                masterPlayerCollectCounts[player.ActorNumber] = count;
+            }
         }
     }
 
@@ -88,6 +131,18 @@ public class ParticleManager : MonoBehaviourPunCallbacks
                 SetupPool();
             }
             SpawnParticlePeriodically(spawnIntervalSeconds);
+            
+            // 新しいマスターが引き継ぐため、プレイヤーカウント辞書を初期化
+            masterPlayerCollectCounts.Clear();
+            foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
+            {
+                int count = 0;
+                if (player.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var countObj))
+                {
+                    count = (int)countObj;
+                }
+                masterPlayerCollectCounts[player.ActorNumber] = count;
+            }
         }
         else
         {
@@ -106,6 +161,69 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         {
             CancelInvoke(nameof(TrySpawnParticle));
             isSpawning = false;
+        }
+    }
+
+    /// <summary>
+    /// 新しいプレイヤーが入室したときに呼ばれる
+    /// </summary>
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        base.OnPlayerEnteredRoom(newPlayer);
+        
+        // マスターなら、新規プレイヤーをカウント辞書に追加
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (!masterPlayerCollectCounts.ContainsKey(newPlayer.ActorNumber))
+            {
+                masterPlayerCollectCounts[newPlayer.ActorNumber] = 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// プレイヤーが退室したときに呼ばれる
+    /// </summary>
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+        
+        // マスターなら、退室プレイヤーをカウント辞書から削除
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (masterPlayerCollectCounts.ContainsKey(otherPlayer.ActorNumber))
+            {
+                masterPlayerCollectCounts.Remove(otherPlayer.ActorNumber);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Room Custom Properties が更新されたときに呼ばれる（totalCollected の同期）
+    /// </summary>
+    public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable propertiesThatChanged)
+    {
+        base.OnRoomPropertiesUpdate(propertiesThatChanged);
+
+        if (propertiesThatChanged.ContainsKey(TOTAL_COLLECTED_KEY))
+        {
+            totalCollected = (int)propertiesThatChanged[TOTAL_COLLECTED_KEY];
+            UpdateCountUI();
+        }
+    }
+
+    /// <summary>
+    /// Player Custom Properties が更新されたときに呼ばれる（myCollected の同期）
+    /// </summary>
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    {
+        base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+
+        // 自分のプロパティが更新されたかチェック
+        if (targetPlayer == PhotonNetwork.LocalPlayer && changedProps.ContainsKey(MY_COLLECTED_KEY))
+        {
+            myCollected = (int)changedProps[MY_COLLECTED_KEY];
+            UpdateCountUI();
         }
     }
 
@@ -347,11 +465,29 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         pool.Push(particle);
         currentParticleCount--;
 
-        //Debug.LogErrorFormat($">>>currentPool={pool.Count}, currentParticleCount={currentParticleCount}<<<");
+        // Room Custom Properties に totalCollected を同期
+        var roomProps = new ExitGames.Client.Photon.Hashtable { { TOTAL_COLLECTED_KEY, totalCollected } };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
 
-        if (PhotonNetwork.LocalPlayer.ActorNumber == requesterActor && n == 0)
+        // requesterActor に該当するプレイヤーを取得して myCollected を更新
+        if (n == 0)
         {
-            myCollected++;
+            Player requester = PhotonNetwork.CurrentRoom.GetPlayer(requesterActor);
+            if (requester != null)
+            {
+                // ローカル辞書から読むことで、複数リクエスト同時処理でも正確にカウント可能
+                if (!masterPlayerCollectCounts.ContainsKey(requesterActor))
+                {
+                    masterPlayerCollectCounts[requesterActor] = 0;
+                }
+                
+                masterPlayerCollectCounts[requesterActor]++;
+                int newCount = masterPlayerCollectCounts[requesterActor];
+                
+                // Player Custom Properties に同期
+                var playerProps = new ExitGames.Client.Photon.Hashtable { { MY_COLLECTED_KEY, newCount } };
+                requester.SetCustomProperties(playerProps);
+            }
         }
 
         UpdateCountUI();

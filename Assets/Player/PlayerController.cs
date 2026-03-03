@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     private Rigidbody2D rb;
     // ネットワーク同期用
     private Vector3 networkPosition;
-    private Vector2 networkVelocity;
+    //private Vector2 networkVelocity;
     [SerializeField] private float networkLerpSpeed = 10f;
     // このオブジェクトがこのクライアントの所有か
     private bool isLocalOwner = false;
@@ -333,15 +333,15 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             // オーナーが送信
             stream.SendNext(transform.position);
-            stream.SendNext(rb.linearVelocity);
+            //stream.SendNext(rb.linearVelocity);
         }
         else
         {
             // 他クライアントは受信して補間に使う
             var pos = (Vector3)stream.ReceiveNext();
-            var vel = (Vector2)stream.ReceiveNext();
+            //var vel = (Vector2)stream.ReceiveNext();
             networkPosition = pos;
-            networkVelocity = vel;
+            //networkVelocity = vel;
         }
     }
 }
