@@ -367,7 +367,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         for (int i = 0; i < initPoolSize; i++)
         {
             instance = InstantiateParicle();
-            instance.SetVisible(false);
+            //instance.SetVisible(false);
             instance.SetActive(false);
             pool.Push(instance);
         }
@@ -409,6 +409,8 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         instance.ParticleManager = this;
         obj.GetComponent<Transform>().SetParent(this.GetComponent<Transform>());
         currentParticleCount++;
+
+        instance.SetActive(true);
         
         return instance;
     }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using Photon.Pun;
+using System.Collections.Generic;
 
 /// <summary>
 /// ParticleSystemは用いていない
@@ -26,6 +27,8 @@ public class ParticleController : MonoBehaviour, IPunObservable
     private Collider2D col;
     private Light2D light2d;
 
+    private List<ParticleSparkleController> sparkles = new List<ParticleSparkleController>();
+
     public bool IsVisible {get; private set;} = true;
 
     void Awake()
@@ -40,6 +43,16 @@ public class ParticleController : MonoBehaviour, IPunObservable
         {
             particleManager = FindFirstObjectByType<ParticleManager>();
             this.transform.SetParent(particleManager.transform);
+        }
+
+        // 子オブジェクトから ParticleSparkleController を取得してリストに追加
+        foreach (Transform child in transform)
+        {
+            ParticleSparkleController sparkle = child.GetComponent<ParticleSparkleController>();
+            if (sparkle != null)
+            {
+                sparkles.Add(sparkle);
+            }
         }
     }
 
@@ -63,6 +76,18 @@ public class ParticleController : MonoBehaviour, IPunObservable
         if(light2d != null)
         {
             light2d.enabled = visible;
+        }
+        // 子オブジェクトのスパークルも表示/非表示を切り替える
+        foreach (var sparkle in sparkles)
+        {
+            if (visible)
+            {
+                sparkle.Appear();
+            }
+            else
+            {
+                sparkle.Disappear();
+            }
         }
     }
 
