@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4700117173501682129}
   - component: {fileID: 3578974953749671531}
   - component: {fileID: 771225984841334812}
+  - component: {fileID: -4687241716251600042}
   - component: {fileID: -5162953340706089130}
   - component: {fileID: -7286398362600464172}
   - component: {fileID: -3155164252431189768}
@@ -188,6 +189,25 @@ MonoBehaviour:
   normalGravity: 10
   coyoteTime: 0.2
   canMove: 1
+--- !u!114 &-4687241716251600042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1840167952961609738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31739d73509ed4e46b96031e1131267c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groundCheckDistance: 0.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  wallCheckDistance: 0.5
+  particleCheckRadius: 15
+  playerCheckRadius: 30
 --- !u!114 &-5162953340706089130
 MonoBehaviour:
   m_ObjectHideFlags: 0

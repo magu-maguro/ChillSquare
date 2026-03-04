@@ -1,26 +1,51 @@
 using UnityEngine;
 using Photon.Pun;
+using Sirenix.OdinInspector;
 
 public class CPUPlayerController : PlayerController
 {
+    [Space(10)]
+    [Header("------以下CPU------")]
+
+    [ShowInInspector, LabelText("行動パターン")] private MovementState movementState = MovementState.Idle;
+    /// <summary>
+    /// 行動パターン
+    /// </summary>
+    public enum MovementState
+    {
+        Idle, LightSeeking, ChasePlayer, Wander
+    }
+
+    private int[][] stateTransitionRates = new int[][]
+    {
+        // Idle, LightSeeking, ChasePlayer, Wander
+        new int[] { 10, 30, 30, 30 }, // Idleからの遷移率
+        new int[] {  1, 80,  5, 14 }, // LightSeekingからの遷移率
+        new int[] {  1, 14, 80,  5 }, // ChasePlayerからの遷移率
+        new int[] {  1,  5, 14, 80 }  // Wanderからの遷移率
+    };
+
+    [ShowInInspector, LabelText("行動パターン変化まであと")]private float movementStateTimer;
+    private float movementStateDecisionInterval = 3f;
     //------Horizontal------
-    private HorizontalState horizontalState;
+    [ShowInInspector, LabelText("横移動状態")] private HorizontalState horizontalState;
     public enum HorizontalState
     {
         Idle,
         WalkLeft,
         WalkRight
     }
-    private float horizontalTimer;
+    [ShowInInspector, LabelText("横移動状態遷移まであと")] private float horizontalTimer;
+    private float horizontalDecisionInterval = 3f;
     //------Jump------
 
-    private JumpState jumpState;
+    [ShowInInspector, LabelText("ジャンプ状態")] private JumpState jumpState;
     public enum JumpState
     {
         Idle,
         Jump
     }
-    private float JumpTimer;
+    [ShowInInspector, LabelText("ジャンプ状態遷移まであと")] private float JumpTimer;
     //------Input------
     private Vector2 cpuMoveInput;
     private bool cpuJumpPressed;
@@ -32,24 +57,87 @@ public class CPUPlayerController : PlayerController
     protected override bool IsCPU => true;
     public bool canMove = true;
 
+    //------Sensor------
+    private CPUPlayerSensor sensor;
+    protected override void Start()
+    {
+        base.Start();
+        sensor = GetComponent<CPUPlayerSensor>();
+    }
+
     private void Update()
     {
-        if(!canMove) return;
+        if (!canMove) return;
+        DecideMovementState();
         UpdateHorizontalMovement();
         UpdateJump();
+    }
+
+    // movementStateTimerごとにマルコフ連鎖的に状態決定
+    private void DecideMovementState()
+    {
+        movementStateTimer -= Time.deltaTime;
+        if (movementStateTimer > 0f) return;
+
+        if(movementState == MovementState.Idle)
+        {
+            int randomValue = Random.Range(0, 100);
+            if (randomValue < stateTransitionRates[0][0])
+                movementState = MovementState.Idle;
+            else if (randomValue < stateTransitionRates[0][0] + stateTransitionRates[0][1])
+                movementState = MovementState.LightSeeking;
+            else if (randomValue < stateTransitionRates[0][0] + stateTransitionRates[0][1] + stateTransitionRates[0][2])
+                movementState = MovementState.ChasePlayer;
+            else
+                movementState = MovementState.Wander;
+        }
+        else if(movementState == MovementState.LightSeeking)
+        {
+            int randomValue = Random.Range(0, 100);
+            if (randomValue < stateTransitionRates[1][0])
+                movementState = MovementState.Idle;
+            else if (randomValue < stateTransitionRates[1][0] + stateTransitionRates[1][1])
+                movementState = MovementState.LightSeeking;
+            else if (randomValue < stateTransitionRates[1][0] + stateTransitionRates[1][1] + stateTransitionRates[1][2])
+                movementState = MovementState.ChasePlayer;
+            else
+                movementState = MovementState.Wander;
+        }
+        else if(movementState == MovementState.ChasePlayer)
+        {
+            int randomValue = Random.Range(0, 100);
+            if (randomValue < stateTransitionRates[2][0])
+                movementState = MovementState.Idle;
+            else if (randomValue < stateTransitionRates[2][0] + stateTransitionRates[2][1])
+                movementState = MovementState.LightSeeking;
+            else if (randomValue < stateTransitionRates[2][0] + stateTransitionRates[2][1] + stateTransitionRates[2][2])
+                movementState = MovementState.ChasePlayer;
+            else
+                movementState = MovementState.Wander;
+        }
+        else if(movementState == MovementState.Wander)
+        {
+            int randomValue = Random.Range(0, 100);
+            if (randomValue < stateTransitionRates[3][0])
+                movementState = MovementState.Idle;
+            else if (randomValue < stateTransitionRates[3][0] + stateTransitionRates[3][1])
+                movementState = MovementState.LightSeeking;
+            else if (randomValue < stateTransitionRates[3][0] + stateTransitionRates[3][1] + stateTransitionRates[3][2])
+                movementState = MovementState.ChasePlayer;
+            else
+                movementState = MovementState.Wander;
+        }
+        movementStateDecisionInterval = Random.Range(2f, 5f);
+        movementStateTimer = movementStateDecisionInterval;
     }
 
     private void UpdateHorizontalMovement()
     {
         horizontalTimer -= Time.deltaTime;
-        if (horizontalTimer <= 0f)
-        {
-            // 次の行動を決定
-            horizontalState = (HorizontalState)Random.Range(0, 3);//重みを付けたい
-            horizontalTimer = Random.Range(0.4f, 1.5f); // 数秒続ける
-        }
+        if (horizontalTimer > 0f) return;
+        
 
-        switch (horizontalState)
+        switch (DecideHorizontalMovement())
         {
             case HorizontalState.Idle:
                 cpuMoveInput = Vector2.zero;
@@ -63,20 +151,100 @@ public class CPUPlayerController : PlayerController
         }
     }
 
+    /// <summary>
+    /// horizontalStateTimerごとにMovementStateに応じて横移動の状態を決定
+    /// </summary>
+    /// <returns></returns>
+    private HorizontalState DecideHorizontalMovement()
+    {
+        switch (movementState)
+        {
+            case MovementState.Idle:
+                horizontalState = HorizontalState.Idle;
+                break;
+            case MovementState.LightSeeking:
+                horizontalState = HorizontalLightSeeking();
+                break;
+            case MovementState.ChasePlayer:
+                horizontalState = HorizontalChasePlayer();
+                break;
+            case MovementState.Wander:
+                horizontalState = HorizontalWandering();
+                break;
+        }
+        horizontalDecisionInterval = Random.Range(1f,2f);
+        horizontalTimer = horizontalDecisionInterval;
+        return horizontalState;
+    }
+    private HorizontalState HorizontalLightSeeking()
+    {
+        // 近くの光源を探す
+        if (sensor.NearestParticle != null)
+        {
+            if (sensor.NearestParticleDirection.x < -0.2f)
+                return HorizontalState.WalkLeft;
+            else if (sensor.NearestParticleDirection.x > 0.2f)
+                return HorizontalState.WalkRight;
+        }
+        return HorizontalWandering();
+    }
+    private HorizontalState HorizontalChasePlayer()
+    {
+        // プレイヤーの方向を探す
+        if (sensor.NearestPlayer != null)
+        {
+            if (sensor.DirectionToPlayer.x < -0.2f)
+                return HorizontalState.WalkLeft;
+            else if (sensor.DirectionToPlayer.x > 0.2f)
+                return HorizontalState.WalkRight;
+        }
+        return HorizontalWandering();
+    }
+    private HorizontalState HorizontalWandering()
+    {
+        int randomValue = Random.Range(0, 100);
+        switch (horizontalState)
+        {
+            case HorizontalState.Idle:
+                if (randomValue < 20)
+                    return HorizontalState.Idle;
+                else if (randomValue < 60)
+                    return HorizontalState.WalkLeft;
+                else
+                    return HorizontalState.WalkRight;
+            case HorizontalState.WalkLeft:
+                if (randomValue < 70)
+                    return HorizontalState.WalkLeft;
+                else if (randomValue < 80)
+                    return HorizontalState.Idle;
+                else
+                    return HorizontalState.WalkRight;
+            case HorizontalState.WalkRight:
+                if (randomValue < 70)
+                    return HorizontalState.WalkRight;
+                else if (randomValue < 80)
+                    return HorizontalState.Idle;
+                else
+                    return HorizontalState.WalkLeft;
+            default:
+                return HorizontalState.Idle;
+        }
+    }
+
     private void UpdateJump()
     {
         if (cpuJumpPressed)
             cpuJumpPressed = false; // 次のフレームでリセット
-        
+
         JumpTimer -= Time.deltaTime;
         if (JumpTimer <= 0f)
         {
             // 次の行動を決定
             jumpState = (JumpState)Random.Range(0, 2);
-            JumpTimer = Random.Range(0.1f, 1f); // 1～3秒続ける
+            JumpTimer = Random.Range(0.3f, 0.7f);
         }
 
-        switch (jumpState)
+        switch (DecideJump())
         {
             case JumpState.Idle:
                 cpuJumpPressed = false;
@@ -89,7 +257,51 @@ public class CPUPlayerController : PlayerController
         }
     }
 
-    //------------------------------
+    private JumpState DecideJump()
+    {
+        switch (movementState)
+        {
+            case MovementState.Idle:
+                jumpState = JumpState.Idle;
+                break;
+            case MovementState.LightSeeking:
+                jumpState = JumpLightSeeking();
+                break;
+            case MovementState.ChasePlayer:
+                jumpState = JumpChasePlayer();
+                break;
+            case MovementState.Wander:
+                jumpState = JumpWandering();
+                break;
+        }
+        return jumpState;
+    }
+    private JumpState JumpLightSeeking()
+    {
+        if (sensor.NearestParticle != null)
+        {
+            if (sensor.NearestParticleDirection.y > 0.5f)
+                return JumpState.Jump;
+        }
+        return JumpState.Idle;
+    }
+    private JumpState JumpChasePlayer()
+    {
+        if (sensor.NearestPlayer != null)
+        {
+            if (sensor.DirectionToPlayer.y > 0.5f)
+                return JumpState.Jump;
+        }
+        return JumpState.Idle;
+    }
+    private JumpState JumpWandering()
+    {
+        if (Dice(70))
+            return JumpState.Jump;
+        return JumpState.Idle;
+    }
+
+    #region GetInput Override
     protected override Vector2 GetMoveInput()
     {
         return cpuMoveInput;
@@ -105,7 +317,7 @@ public class CPUPlayerController : PlayerController
         return cpuJumpPressing;
     }
 
-    //------------------------------
+    #endregion
 
     private bool Dice(int percentage)
     {
@@ -113,6 +325,8 @@ public class CPUPlayerController : PlayerController
         if (n <= percentage) return true;
         else return false;
     }
+
+    #region Skin
 
     protected override void ApplyPlayerSkin()
     {
@@ -127,6 +341,7 @@ public class CPUPlayerController : PlayerController
                 1f
             );
         }
+        Debug.Log("CPU, applySkin!!!!!!!!!!!!!!!!!!!");
 
         SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
         if (skinChangeManager == null) return;
@@ -157,4 +372,5 @@ public class CPUPlayerController : PlayerController
             skinChangeManager.ApplySkin(renderer, data);
         }
     }
+    #endregion
 }

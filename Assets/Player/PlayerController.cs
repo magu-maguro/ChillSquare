@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         networkPosition = transform.position;
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         // 所有判定（Start時点での判定）
         isLocalOwner = (photonView == null) || photonView.IsMine;
@@ -151,6 +151,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         // ローカルオーナーのみ実行
         if (!isLocalOwner) return;
+
+        Debug.Log("ApplyPlayerSkin called on " + gameObject.name);
 
         SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
         if (skinChangeManager != null && PlayerPrefs.HasKey("SkinData"))
