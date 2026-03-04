@@ -368,7 +368,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         {
             instance = InstantiateParicle();
             //instance.SetVisible(false);
-            instance.SetActive(false);
+            instance.SetActive(false, 1);
             pool.Push(instance);
         }
         currentParticleCount = 0;

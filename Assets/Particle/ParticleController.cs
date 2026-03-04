@@ -28,6 +28,7 @@ public class ParticleController : MonoBehaviour, IPunObservable
     private Light2D light2d;
 
     private List<ParticleSparkleController> sparkles = new List<ParticleSparkleController>();
+    [SerializeField] private ParticleSystem effectPrefab;
 
     public bool IsVisible {get; private set;} = true;
 
@@ -61,7 +62,7 @@ public class ParticleController : MonoBehaviour, IPunObservable
         light2d.color = DecideRandomColor();
     }
 
-    public void SetVisible(bool visible)
+    public void SetVisible(bool visible, int n = 0)
     {
         IsVisible = visible;
 
@@ -76,6 +77,11 @@ public class ParticleController : MonoBehaviour, IPunObservable
         if(light2d != null)
         {
             light2d.enabled = visible;
+        }
+        //取得演出
+        if(!visible && n == 0)
+        {
+            CollectEffect();
         }
         // 子オブジェクトのスパークルも表示/非表示を切り替える
         foreach (var sparkle in sparkles)
@@ -94,10 +100,16 @@ public class ParticleController : MonoBehaviour, IPunObservable
     /// <summary>
     /// アクティブ状態を設定し、ネットワークで同期する（SetVisible()も含む）
     /// </summary>
-    public void SetActive(bool active)
+    public void SetActive(bool active, int n = 0)
     {
         isActiveState = active;
-        SetVisible(active);
+        SetVisible(active, n);
+    }
+
+    private void CollectEffect()
+    {
+        var effect = Instantiate(effectPrefab, transform.position, Quaternion.identity);
+        effect.Play();
     }
 
     public void Initialize(int id, Vector2 pos, Color color)
