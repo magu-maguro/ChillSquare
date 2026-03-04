@@ -28,7 +28,6 @@ public class ParticleController : MonoBehaviour, IPunObservable
     private Light2D light2d;
 
     private List<ParticleSparkleController> sparkles = new List<ParticleSparkleController>();
-    [SerializeField] private ParticleSystem effectPrefab;
 
     public bool IsVisible {get; private set;} = true;
 
@@ -108,8 +107,7 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
     private void CollectEffect()
     {
-        var effect = Instantiate(effectPrefab, transform.position, Quaternion.identity);
-        effect.Play();
+        GetEffectManager.Instance.PlayGetEffect(transform.position);
     }
 
     public void Initialize(int id, Vector2 pos, Color color)
