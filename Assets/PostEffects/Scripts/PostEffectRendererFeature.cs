@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,14 +10,16 @@ public class PostEffectRendererFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Settings
     {
-        public Material blitMaterial;
+        public Material baselineMaterial;
+        [SerializeField] public List<Material> additionalMaterials = new List<Material>();
         public string profilerTag = "CustomPostEffect";
         public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
     }
 
     class CustomRenderPass : ScriptableRenderPass
     {
-        private Material blitMaterial;
+        private Material baselineMaterial;
+        private List<Material> additionalMaterials;
         private string profilerTag;
 
         public CustomRenderPass(string tag)
@@ -24,15 +27,16 @@ public class PostEffectRendererFeature : ScriptableRendererFeature
             profilerTag = tag;
         }
 
-        public void Setup(Material material)
+        public void Setup(Material baseline, List<Material> additional)
         {
-            blitMaterial = material;
+            baselineMaterial = baseline;
+            additionalMaterials = additional;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            // マテリアルが無ければ何もしない（nullで無害化できるように）
-            if (blitMaterial == null)
+            // マテリアルが無ければ何もしない
+            if (baselineMaterial == null && (additionalMaterials == null || additionalMaterials.Count == 0))
                 return;
 
             // フレームのリソースを取得
@@ -41,18 +45,33 @@ public class PostEffectRendererFeature : ScriptableRendererFeature
             if (!src.IsValid())
                 return;
 
-            // src と同じ定義の一時テクスチャを作る（名前はデバッグ用）
-            // renderGraph.CreateTexture(TextureHandle) のオーバーロードを使うと簡単
-            TextureHandle destination = renderGraph.CreateTexture(src, profilerTag + "_Temp", false);
+            // 基本マテリアルを適用
+            TextureHandle current = src;
+            if (baselineMaterial != null)
+            {
+                TextureHandle destination = renderGraph.CreateTexture(src, profilerTag + "_Baseline", false);
+                var blitParams = new RenderGraphUtils.BlitMaterialParameters(current, destination, baselineMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, profilerTag + " Baseline Blit");
+                current = destination;
+            }
 
-            // マテリアルが設定されているなら BlitPass を使う
-            var blitParams = new RenderGraphUtils.BlitMaterialParameters(src, destination, blitMaterial, 0);
-            renderGraph.AddBlitPass(blitParams, profilerTag + " Blit");
+            // 追加マテリアルを順番に重ねる
+            if (additionalMaterials != null)
+            {
+                for (int i = 0; i < additionalMaterials.Count; i++)
+                {
+                    if (additionalMaterials[i] == null)
+                        continue;
 
-            // 以降のパス（URP内部や他の RendererFeature）がこの destination を cameraColor として使うように差し替える
-            resourceData.cameraColor = destination;
+                    TextureHandle destination = renderGraph.CreateTexture(src, profilerTag + "_Additional_" + i, false);
+                    var blitParams = new RenderGraphUtils.BlitMaterialParameters(current, destination, additionalMaterials[i], 0);
+                    renderGraph.AddBlitPass(blitParams, profilerTag + " Additional Blit " + i);
+                    current = destination;
+                }
+            }
 
-            // ※ ここで return せずに他の AddBlitPass / AddCopyPass を続ければ多段処理も可能です。
+            // 最終結果を cameraColor として使うように差し替える
+            resourceData.cameraColor = current;
         }
 
 
@@ -77,13 +96,32 @@ public class PostEffectRendererFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        customPass.Setup(settings.blitMaterial);
+        customPass.Setup(settings.baselineMaterial, settings.additionalMaterials);
         renderer.EnqueuePass(customPass);
     }
 
-    // --- API: 外部からマテリアル差し替え ---
-    public void SetMaterial(Material newMat)
+    // --- API: 外部から基本マテリアル設定 ---
+    public void SetBaselineMaterial(Material newMat)
     {
-        settings.blitMaterial = newMat;
+        settings.baselineMaterial = newMat;
+    }
+
+    // --- API: 外部から追加マテリアルリストを設定 ---
+    public void SetAdditionalMaterials(List<Material> mats)
+    {
+        settings.additionalMaterials = mats ?? new List<Material>();
+    }
+
+    // --- API: 追加マテリアルをクリア ---
+    public void ClearAdditionalMaterials()
+    {
+        settings.additionalMaterials.Clear();
+    }
+
+    // --- API: 追加マテリアルを追加 ---
+    public void AddAdditionalMaterial(Material mat)
+    {
+        if (mat != null)
+            settings.additionalMaterials.Add(mat);
     }
 }
