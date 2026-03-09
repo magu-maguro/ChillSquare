@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c25d90a1dd921374daed47907525d3af, type: 3}
+  m_Name: EventDataSample
+  m_EditorClassIdentifier: 
+  eventName: Sample
+  particleEffect: {fileID: 11400000, guid: fb1da9c049513564c811b7964f434205, type: 2}
+  playerEffect: {fileID: 11400000, guid: f2724faa8a0a5f447865f1fe0259b879, type: 2}
+  roomEffect: {fileID: 11400000, guid: f6636f76086a5cb408ceb2c128ba9711, type: 2}
+  duration: 1
+  particleWeightingRate: 1

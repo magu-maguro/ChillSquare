@@ -793,6 +793,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 97236362}
   m_CullTransparentMesh: 1
+--- !u!1 &179973534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 179973536}
+  - component: {fileID: 179973535}
+  m_Layer: 0
+  m_Name: '>>>EventManager<<<'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &179973535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179973534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74526a716e1bf9d488ffa51f93e14ac4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventList: []
+--- !u!4 &179973536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179973534}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &218387288
 GameObject:
   m_ObjectHideFlags: 0
@@ -998,10 +1043,15 @@ MonoBehaviour:
   groundTilemap: {fileID: 1047282009}
   precomputeFreePositions: 1
   maxDecideAttempts: 50
+  eventManager: {fileID: 179973535}
   initPoolSize: 10
   maxParticleCount: 100
   spawnIntervalSeconds: 1
   CountText: {fileID: 479205846}
+  totalCollected:
+    value: 0
+  myCollected:
+    value: 0
 --- !u!4 &236556463
 Transform:
   m_ObjectHideFlags: 0
@@ -58341,6 +58391,7 @@ GameObject:
   - component: {fileID: 1418656554}
   - component: {fileID: 1418656553}
   - component: {fileID: 1418656557}
+  - component: {fileID: 1418656558}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -58447,6 +58498,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MenuRoot: {fileID: 1799082948}
   tabSelector: {fileID: 501058562}
+--- !u!114 &1418656558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418656552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2504c1c175ac7004bad76e6cb49995cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  particleManager: {fileID: 236556462}
+  totalCountText: {fileID: 479205846}
 --- !u!1 &1442348015
 GameObject:
   m_ObjectHideFlags: 0
@@ -61860,3 +61925,4 @@ SceneRoots:
   - {fileID: 356701664}
   - {fileID: 560077481}
   - {fileID: 804822168}
+  - {fileID: 179973536}

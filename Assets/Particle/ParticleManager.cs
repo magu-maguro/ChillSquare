@@ -20,6 +20,9 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     [SerializeField] private int maxDecideAttempts = 50;
     private List<Vector3> freePositions = new List<Vector3>();
 
+    //Event
+    [SerializeField] private EventManager eventManager;
+
     //pool
     [SerializeField] private uint initPoolSize = 10;
     [SerializeField] private uint maxParticleCount = 300;
@@ -42,19 +45,23 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     //UI
     [SerializeField] private TextMeshProUGUI CountText;
     // 全クライアントが取得したパーティクルの総数（Room Custom Properties で管理）
-    private int totalCollected = 0;
+    //private int totalCollected = 0;
+    public ReactiveProperty<long> totalCollected = new ReactiveProperty<long>(0);
     // 自分が取得したパーティクルの数（Player Custom Properties で管理）
-    private int myCollected = 0;
+    //private int myCollected = 0;
+    public ReactiveProperty<long> myCollected = new ReactiveProperty<long>(0);
 
     // Custom Properties のキー
     private const string TOTAL_COLLECTED_KEY = "totalCollected";
     private const string MY_COLLECTED_KEY = "myCollected";
 
     // マスターが各プレイヤーのカウントをローカルで追跡（複数リクエスト同時処理対策）
-    private Dictionary<int, int> masterPlayerCollectCounts = new Dictionary<int, int>();
+    private Dictionary<int, long> masterPlayerCollectCounts = new Dictionary<int, long>();
+
 
     void Start()
     {
+        PhotonNetwork.LogLevel = PunLogLevel.ErrorsOnly;
         pv = GetComponent<PhotonView>();
 
         // RequestSpawnStream を購読して、外部要求をマスターに伝達
@@ -66,7 +73,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         }
 
         //SetupPool();
-        UpdateCountUI();
+        //UpdateCountUI();
     }
 
     public override void OnJoinedRoom()
@@ -77,24 +84,24 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         // Room Properties から totalCollected を取得
         if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(TOTAL_COLLECTED_KEY, out var totalObj))
         {
-            totalCollected = (int)totalObj;
+            totalCollected.Value = (long)totalObj;
         }
         else
         {
-            totalCollected = 0;
+            totalCollected.Value = 0;
         }
 
         // Player Properties から myCollected を取得
         if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var myObj))
         {
-            myCollected = (int)myObj;
+            myCollected.Value = (long)myObj;
         }
         else
         {
-            myCollected = 0;
+            myCollected.Value = 0;
         }
 
-        UpdateCountUI();
+        //UpdateCountUI();
 
         if (PhotonNetwork.IsMasterClient)
         {
@@ -106,10 +113,10 @@ public class ParticleManager : MonoBehaviourPunCallbacks
             masterPlayerCollectCounts.Clear();
             foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
             {
-                int count = 0;
+                long count = 0;
                 if (player.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var countObj))
                 {
-                    count = (int)countObj;
+                    count = (long)countObj;
                 }
                 masterPlayerCollectCounts[player.ActorNumber] = count;
             }
@@ -207,8 +214,8 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
         if (propertiesThatChanged.ContainsKey(TOTAL_COLLECTED_KEY))
         {
-            totalCollected = (int)propertiesThatChanged[TOTAL_COLLECTED_KEY];
-            UpdateCountUI();
+            totalCollected.Value = (long)propertiesThatChanged[TOTAL_COLLECTED_KEY];
+            //UpdateCountUI();
         }
     }
 
@@ -222,8 +229,8 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         // 自分のプロパティが更新されたかチェック
         if (targetPlayer == PhotonNetwork.LocalPlayer && changedProps.ContainsKey(MY_COLLECTED_KEY))
         {
-            myCollected = (int)changedProps[MY_COLLECTED_KEY];
-            UpdateCountUI();
+            myCollected.Value = (long)changedProps[MY_COLLECTED_KEY];
+            //UpdateCountUI();
         }
     }
 
@@ -245,13 +252,21 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         }
     }
 
+    void OnEventStart(EventData eventData)
+    {
+        // イベント開始時の処理
+        Debug.Log(">>> OnEventStart!!! <<<");
+    }
+
+    /*
     private void UpdateCountUI()
     {
         if (CountText != null)
         {
-            CountText.text = "Total: " + totalCollected + "  My: " + myCollected;
+            CountText.text = "Total: " + totalCollected.Value + "  My: " + myCollected;
         }
     }
+    */
 
     public void RequestCollectFromMaster(int viewID, int n)
     {
@@ -462,13 +477,13 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         // すでに無効なら拒否（同時取得防止）
         if (!particle.IsVisible) return;
 
-        totalCollected++;
+        totalCollected.Value++;
         particle.SetActive(false);
         pool.Push(particle);
         currentParticleCount--;
 
         // Room Custom Properties に totalCollected を同期
-        var roomProps = new ExitGames.Client.Photon.Hashtable { { TOTAL_COLLECTED_KEY, totalCollected } };
+        var roomProps = new ExitGames.Client.Photon.Hashtable { { TOTAL_COLLECTED_KEY, totalCollected.Value } };
         PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
 
         // requesterActor に該当するプレイヤーを取得して myCollected を更新
@@ -484,7 +499,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
                 }
                 
                 masterPlayerCollectCounts[requesterActor]++;
-                int newCount = masterPlayerCollectCounts[requesterActor];
+                long newCount = masterPlayerCollectCounts[requesterActor];
                 
                 // Player Custom Properties に同期
                 var playerProps = new ExitGames.Client.Photon.Hashtable { { MY_COLLECTED_KEY, newCount } };
@@ -492,7 +507,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
             }
         }
 
-        UpdateCountUI();
+        //UpdateCountUI();
     }
 
     #endregion
