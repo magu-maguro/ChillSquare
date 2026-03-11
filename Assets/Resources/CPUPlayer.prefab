@@ -181,7 +181,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7d6c7c10c976d4d9bd6b4b5b34abf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkLerpSpeed: 10
   moveSpeed: 10
   jumpInitialSpeed: 24
   allowDoubleJump: 1

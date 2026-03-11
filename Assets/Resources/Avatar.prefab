@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: 1753169933656755936}
   - component: {fileID: 211926169604716656}
   - component: {fileID: 5015628080764905463}
+  - component: {fileID: -3919283447424587974}
+  - component: {fileID: -2211147465034609478}
+  - component: {fileID: 1836066697440901721}
   - component: {fileID: -7400077901230576916}
   - component: {fileID: 4939550447830715881}
   - component: {fileID: 5779982024838604614}
@@ -180,13 +183,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae28ac85ddf5a544dacc5bd309d2794e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkLerpSpeed: 10
   moveSpeed: 10
   jumpInitialSpeed: 24
   allowDoubleJump: 1
   jumpingGravity: 5
   normalGravity: 10
   coyoteTime: 0.15
+--- !u!114 &-3919283447424587974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632797011559874709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 329b6a72ee3e8dc439c933fedf4a6fc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-2211147465034609478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632797011559874709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77d12ef6954fbef4c82dd24664c5e2ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1836066697440901721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1632797011559874709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2683e5f203827f14786cdd01e188bc23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  networkLerpSpeed: 10
 --- !u!114 &-7400077901230576916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,7 +245,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
-  - {fileID: 5015628080764905463}
+  - {fileID: 1836066697440901721}
   - {fileID: 4939550447830715881}
   sceneViewId: 0
   InstantiationId: 0

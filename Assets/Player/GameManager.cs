@@ -1,15 +1,19 @@
 using UnityEngine;
 using UniRx;
 using Photon.Pun;
+using Unity.Cinemachine;
 
 public class GameManager : MonoBehaviour
 {
     [Header("Managers")]
     [SerializeField] private NetworkManager networkManager;
+    [SerializeField] private SkinChangeManager skinChangeManager;
     public static GameManager Instance { get; private set; }
 
     [Header("Player")]
     [SerializeField] private Vector2 playerInitPos = Vector2.zero;
+    [Header("Camera")]
+    [SerializeField] private CinemachineCamera vcam;
 
     public enum GameState
     {
@@ -57,6 +61,8 @@ public class GameManager : MonoBehaviour
     private void InitializePlayer()
     {
         Vector3 position = playerInitPos;
-        PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
+        var instance = PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
+        instance.GetComponent<PlayerSkinController>().Initialize(skinChangeManager);
+        instance.GetComponent<PlayerCameraController>().Initialize(vcam);
     }
 }

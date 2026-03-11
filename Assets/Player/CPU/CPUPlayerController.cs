@@ -25,7 +25,7 @@ public class CPUPlayerController : PlayerController
         new int[] {  1,  5, 14, 80 }  // Wanderからの遷移率
     };
 
-    [ShowInInspector, LabelText("行動パターン変化まであと")]private float movementStateTimer;
+    [ShowInInspector, LabelText("行動パターン変化まであと")] private float movementStateTimer;
     private float movementStateDecisionInterval = 3f;
     //------Horizontal------
     [ShowInInspector, LabelText("横移動状態")] private HorizontalState horizontalState;
@@ -63,6 +63,7 @@ public class CPUPlayerController : PlayerController
     {
         base.Start();
         sensor = GetComponent<CPUPlayerSensor>();
+        ApplyCPUSkin();
     }
 
     private void Update()
@@ -79,53 +80,20 @@ public class CPUPlayerController : PlayerController
         movementStateTimer -= Time.deltaTime;
         if (movementStateTimer > 0f) return;
 
-        if(movementState == MovementState.Idle)
+        int current = (int)movementState;
+        int[] rates = stateTransitionRates[current];
+
+        int randomValue = Random.Range(0, 100);
+        int cumulative = 0;
+
+        for (int i = 0; i < rates.Length; i++)
         {
-            int randomValue = Random.Range(0, 100);
-            if (randomValue < stateTransitionRates[0][0])
-                movementState = MovementState.Idle;
-            else if (randomValue < stateTransitionRates[0][0] + stateTransitionRates[0][1])
-                movementState = MovementState.LightSeeking;
-            else if (randomValue < stateTransitionRates[0][0] + stateTransitionRates[0][1] + stateTransitionRates[0][2])
-                movementState = MovementState.ChasePlayer;
-            else
-                movementState = MovementState.Wander;
-        }
-        else if(movementState == MovementState.LightSeeking)
-        {
-            int randomValue = Random.Range(0, 100);
-            if (randomValue < stateTransitionRates[1][0])
-                movementState = MovementState.Idle;
-            else if (randomValue < stateTransitionRates[1][0] + stateTransitionRates[1][1])
-                movementState = MovementState.LightSeeking;
-            else if (randomValue < stateTransitionRates[1][0] + stateTransitionRates[1][1] + stateTransitionRates[1][2])
-                movementState = MovementState.ChasePlayer;
-            else
-                movementState = MovementState.Wander;
-        }
-        else if(movementState == MovementState.ChasePlayer)
-        {
-            int randomValue = Random.Range(0, 100);
-            if (randomValue < stateTransitionRates[2][0])
-                movementState = MovementState.Idle;
-            else if (randomValue < stateTransitionRates[2][0] + stateTransitionRates[2][1])
-                movementState = MovementState.LightSeeking;
-            else if (randomValue < stateTransitionRates[2][0] + stateTransitionRates[2][1] + stateTransitionRates[2][2])
-                movementState = MovementState.ChasePlayer;
-            else
-                movementState = MovementState.Wander;
-        }
-        else if(movementState == MovementState.Wander)
-        {
-            int randomValue = Random.Range(0, 100);
-            if (randomValue < stateTransitionRates[3][0])
-                movementState = MovementState.Idle;
-            else if (randomValue < stateTransitionRates[3][0] + stateTransitionRates[3][1])
-                movementState = MovementState.LightSeeking;
-            else if (randomValue < stateTransitionRates[3][0] + stateTransitionRates[3][1] + stateTransitionRates[3][2])
-                movementState = MovementState.ChasePlayer;
-            else
-                movementState = MovementState.Wander;
+            cumulative += rates[i];
+            if (randomValue < cumulative)
+            {
+                movementState = (MovementState)i;
+                break;
+            }
         }
         movementStateDecisionInterval = Random.Range(2f, 5f);
         movementStateTimer = movementStateDecisionInterval;
@@ -135,7 +103,7 @@ public class CPUPlayerController : PlayerController
     {
         horizontalTimer -= Time.deltaTime;
         if (horizontalTimer > 0f) return;
-        
+
 
         switch (DecideHorizontalMovement())
         {
@@ -172,7 +140,7 @@ public class CPUPlayerController : PlayerController
                 horizontalState = HorizontalWandering();
                 break;
         }
-        horizontalDecisionInterval = Random.Range(1f,2f);
+        horizontalDecisionInterval = Random.Range(1f, 2f);
         horizontalTimer = horizontalDecisionInterval;
         return horizontalState;
     }
@@ -328,7 +296,7 @@ public class CPUPlayerController : PlayerController
 
     #region Skin
 
-    protected override void ApplyPlayerSkin()
+    void ApplyCPUSkin()
     {
         // ランダムな色を生成して、マスターが生成している場合は RPC で全クライアントに反映する
         SkinData randomSkinData = new SkinData();

@@ -2,17 +2,11 @@ using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UniRx;
-using Unity.VisualScripting;
-using Unity.Cinemachine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     private Rigidbody2D rb;
-    // ネットワーク同期用
-    private Vector3 networkPosition;
-    //private Vector2 networkVelocity;
-    [SerializeField] private float networkLerpSpeed = 10f;
     // このオブジェクトがこのクライアントの所有か
     private bool isLocalOwner = false;
 
@@ -62,7 +56,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     {
         rb = GetComponent<Rigidbody2D>();
         groundCollider = transform.GetChild(0).GetComponent<Collider2D>();
-        networkPosition = transform.position;
     }
 
     protected virtual void Start()
@@ -74,13 +67,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         // 非所有者でDisableすると同クライアントの他インスタンスに影響する）
         if (isLocalOwner)
         {
-            ApplyPlayerSkin();
-            //CinemachineCamera TrackingTargetに自身を設定
-            CinemachineCamera vcam = FindAnyObjectByType<CinemachineCamera>();
-            if (vcam != null && !IsCPU)
-            {
-                vcam.Follow = this.transform;
-            }
             if (InputManager.Instance != null)
             {
                 inputActions = InputManager.Instance.GetInputActions();
@@ -102,35 +88,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             //rb.simulated = false;
             rb.bodyType = RigidbodyType2D.Kinematic;
             //foreach (var col in GetComponents<Collider2D>()) col.isTrigger = true;
-            networkPosition = transform.position;
         }
 
-        // SkinChangeManager の Save 通知を購読（CPUは無視）
-        if (!IsCPU)
-        {
-            SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
-            if (skinChangeManager != null)
-            {
-                skinChangeManager.OnSkinSaved
-                    .Subscribe(data =>
-                    {
-                        // スキンデータをJSONに変換
-                        string json = JsonUtility.ToJson(data);
-                        // RPC(AllBuffered)でスキンを全クライアントに反映
-                        if (photonView != null && isLocalOwner)
-                        {
-                            photonView.RPC("RPC_ApplyPlayerSkin", RpcTarget.AllBuffered, json);
-                        }
-                        else if (isLocalOwner)
-                        {
-                            // PhotonViewがない場合は直接適用
-                            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-                            skinChangeManager.ApplySkin(renderer, data);
-                        }
-                    })
-                    .AddTo(this);
-            }
-        }
+
     }
 
     public override void OnDisable()
@@ -147,53 +107,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         RefreshOwnershipState();
     }
 
-    protected virtual void ApplyPlayerSkin()
-    {
-        // ローカルオーナーのみ実行
-        if (!isLocalOwner) return;
 
-        Debug.Log("ApplyPlayerSkin called on " + gameObject.name);
-
-        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
-        if (skinChangeManager != null && PlayerPrefs.HasKey("SkinData"))
-        {
-            string json = PlayerPrefs.GetString("SkinData");
-            // RPC(AllBuffered)でスキンを全クライアントに反映
-            if (photonView != null)
-            {
-                photonView.RPC("RPC_ApplyPlayerSkin", RpcTarget.AllBuffered, json);
-            }
-            else
-            {
-                // PhotonViewがない場合は直接適用
-                SkinData data = JsonUtility.FromJson<SkinData>(json);
-                SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-                skinChangeManager.ApplySkin(renderer, data);
-            }
-        }
-    }
-
-    [PunRPC]
-    void RPC_ApplyPlayerSkin(string skinDataJson)
-    {
-        SkinChangeManager skinChangeManager = FindAnyObjectByType<SkinChangeManager>();
-        if (skinChangeManager != null)
-        {
-            SkinData data = JsonUtility.FromJson<SkinData>(skinDataJson);
-            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-            skinChangeManager.ApplySkin(renderer, data);
-        }
-    }
 
     private void FixedUpdate()
     {
         //if(!IsCPU) Debug.Log(CanJump());
         //GameManagerのbool確認
         RefreshOwnershipState();
-        // 自分が所有していないプレイヤーは受信座標を補間して追従する
+        // 自分が所有していないプレイヤーは処理をスキップ（位置同期はPlayerNetworkSyncが担当）
         if (photonView != null && !photonView.IsMine)
         {
-            transform.position = Vector3.Lerp(transform.position, networkPosition, Time.fixedDeltaTime * networkLerpSpeed);
             return;
         }
         
@@ -237,7 +160,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         {
             rb.linearVelocity = Vector2.zero;
             rb.bodyType = RigidbodyType2D.Kinematic;
-            networkPosition = transform.position;
         }
     }
 
@@ -326,24 +248,5 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         // 二段ジャンプを許可しない場合は、コヨーテタイム内でまだジャンプしていなければ許可
         if (!IsCPU && coyoteTimer < coyoteTime && !isJumping) return true;
         return false;
-    }
-
-    // Photon PUN のシリアライズで位置と速度を同期
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.IsWriting)
-        {
-            // オーナーが送信
-            stream.SendNext(transform.position);
-            //stream.SendNext(rb.linearVelocity);
-        }
-        else
-        {
-            // 他クライアントは受信して補間に使う
-            var pos = (Vector3)stream.ReceiveNext();
-            //var vel = (Vector2)stream.ReceiveNext();
-            networkPosition = pos;
-            //networkVelocity = vel;
-        }
     }
 }

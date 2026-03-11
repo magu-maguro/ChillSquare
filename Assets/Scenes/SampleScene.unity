@@ -56510,6 +56510,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf1a96240e5d28d4a9c5ba36870cc10b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  networkManager: {fileID: 1061437557}
+  skinChangeManager: {fileID: 1061437553}
+  playerInitPos: {x: 0, y: 0}
+  vcam: {fileID: 879698418}
 --- !u!4 &1061437552
 Transform:
   m_ObjectHideFlags: 0
