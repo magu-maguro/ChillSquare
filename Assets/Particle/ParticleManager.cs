@@ -2,9 +2,12 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 using UnityEngine.Tilemaps;
 using TMPro;
 using UniRx;
+using Sirenix.OdinInspector;
+using Unity.Cinemachine;
 
 /// <summary>
 /// Object Poolを使用してParticleControllerを管理
@@ -22,6 +25,13 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
     //Event
     [SerializeField] private EventManager eventManager;
+
+    [Header("Particle Value")]
+    [SerializeField] private long baseParticleValue = 1;
+    [SerializeField] private long progressPerValueStep = 50;
+    [SerializeField] private long valueIncreasePerStep = 1;
+    private float currentParticleWeightingRate = 1f;
+    private readonly HashSet<ParticleController> activeParticles = new HashSet<ParticleController>();
 
     //pool
     [SerializeField] private uint initPoolSize = 10;
@@ -66,6 +76,14 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
         // RequestSpawnStream を購読して、外部要求をマスターに伝達
         RequestSpawnStream.Subscribe(pos => RequestSpawn(pos)).AddTo(this);
+        totalCollected.Subscribe(_ => RefreshActiveParticleValues()).AddTo(this);
+
+        if (eventManager != null)
+        {
+            currentParticleWeightingRate = eventManager.CurrentParticleWeightingRate;
+            eventManager.OnEventStart.Subscribe(HandleEventStart).AddTo(this);
+            eventManager.OnEventEnd.Subscribe(_ => ResetParticleWeighting()).AddTo(this);
+        }
 
         if (precomputeFreePositions)
         {
@@ -252,10 +270,16 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         }
     }
 
-    void OnEventStart(EventData eventData)
+    void HandleEventStart(EventData eventData)
     {
-        // イベント開始時の処理
-        Debug.Log(">>> OnEventStart!!! <<<");
+        currentParticleWeightingRate = eventData != null ? eventData.particleWeightingRate : 1f;
+        RefreshActiveParticleValues();
+    }
+
+    void ResetParticleWeighting()
+    {
+        currentParticleWeightingRate = 1f;
+        RefreshActiveParticleValues();
     }
 
     /*
@@ -309,6 +333,9 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     #endregion
 
     #region Helper===================================================
+    [Header("パーティクル出現範囲")]
+    [SerializeField, MinMaxRangeSlider(-38f, 38f)] Vector2 rangeX = new Vector2(-38f, 38f);
+    [SerializeField, MinMaxRangeSlider(-15f, 20f)] Vector2 rangeY = new Vector2(-15f, 20f);
     private void PrecomputeFreePositions()
     {
         freePositions.Clear();
@@ -323,7 +350,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
                 if (!groundTilemap.HasTile(cell))
                 {
                     Vector3 world = groundTilemap.GetCellCenterWorld(cell);
-                    if (world.x >= -38f && world.x <= 38f && world.y >= -15f && world.y <= 20f)
+                    if (world.x >= rangeX.x && world.x <= rangeX.y && world.y >= rangeY.x && world.y <= rangeY.y)
                     {
                         freePositions.Add(world);
                     }
@@ -337,17 +364,17 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         // If we precomputed free positions and have entries, sample one.
         if (precomputeFreePositions && freePositions != null && freePositions.Count > 0)
         {
-            var w = freePositions[Random.Range(0, freePositions.Count)];
+            var w = freePositions[UnityEngine.Random.Range(0, freePositions.Count)];
             //タイルの範囲でランダムに
-            w += new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f));
+            w += new Vector3(UnityEngine.Random.Range(-0.5f, 0.5f), UnityEngine.Random.Range(-0.5f, 0.5f));
             return new Vector2(w.x, w.y);
         }
 
         // Otherwise, try a limited number of attempts to avoid placing on tiles.
         for (int attempt = 0; attempt < maxDecideAttempts; attempt++)
         {
-            float x = Random.Range(-38f, 38f);
-            float y = Random.Range(-15f, 10f);
+            float x = UnityEngine.Random.Range(-38f, 38f);
+            float y = UnityEngine.Random.Range(-15f, 10f);
             Vector2 pos = new Vector2(x, y);
 
             if (groundTilemap == null) return pos;
@@ -360,15 +387,15 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         }
 
         // Fallback: return a random position if no free spot found within attempts.
-        float xf = Random.Range(-38f, 38f);
-        float yf = Random.Range(-15f, 10f);
+        float xf = UnityEngine.Random.Range(-38f, 38f);
+        float yf = UnityEngine.Random.Range(-15f, 10f);
         return new Vector2(xf, yf);
     }
 
     /*
     private Color DecideRandomColor()
     {
-        float h = Random.Range(0f, 1f);
+        float h = UnityEngine.Random.Range(0f, 1f);
         Color color = Color.HSVToRGB(h, 1f, 1f);
         return color;
     }
@@ -402,12 +429,14 @@ public class ParticleManager : MonoBehaviourPunCallbacks
             ParticleController nextParticle = pool.Pop();
             currentParticleCount++;
             nextParticle.transform.position = DecideRandomPos();
-            nextParticle.SetActive(true);
+            ActivateParticle(nextParticle);
             return nextParticle;
         }
         else
         {
-            return InstantiateParicle(prefabType);
+            ParticleController instance = InstantiateParicle(prefabType);
+            ActivateParticle(instance);
+            return instance;
         }
     }
 
@@ -424,8 +453,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         instance.ParticleManager = this;
         obj.GetComponent<Transform>().SetParent(this.GetComponent<Transform>());
         currentParticleCount++;
-
-        instance.SetActive(true);
+        ApplyValueToParticle(instance);
         
         return instance;
     }
@@ -441,6 +469,83 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         }
 
         //nextParticle.SetColor(DecideRandomColor());
+    }
+
+    private void ActivateParticle(ParticleController particle)
+    {
+        if (particle == null)
+        {
+            return;
+        }
+
+        ApplyValueToParticle(particle);
+        particle.SetActive(true);
+        activeParticles.Add(particle);
+    }
+
+    private void ApplyValueToParticle(ParticleController particle)
+    {
+        if (particle == null)
+        {
+            return;
+        }
+
+        particle.Value = CalculateCurrentParticleValue();
+    }
+
+    private long CalculateCurrentParticleValue()
+    {
+        long scaledBaseValue = CalculateScaledBaseParticleValue();
+        double weightedValue = scaledBaseValue * currentParticleWeightingRate;
+
+        if (weightedValue <= 0d)
+        {
+            return 0;
+        }
+
+        return Math.Max(1L, (long)Math.Ceiling(weightedValue));
+    }
+
+    private long CalculateScaledBaseParticleValue()
+    {
+        if (progressPerValueStep <= 0)
+        {
+            return baseParticleValue;
+        }
+
+        long progressSteps = totalCollected.Value / progressPerValueStep;
+        return baseParticleValue + (progressSteps * valueIncreasePerStep);
+    }
+
+    private void RefreshActiveParticleValues()
+    {
+        if (activeParticles.Count == 0)
+        {
+            return;
+        }
+
+        List<ParticleController> staleParticles = null;
+        foreach (ParticleController particle in activeParticles)
+        {
+            if (particle == null || !particle.IsVisible)
+            {
+                staleParticles ??= new List<ParticleController>();
+                staleParticles.Add(particle);
+                continue;
+            }
+
+            ApplyValueToParticle(particle);
+        }
+
+        if (staleParticles == null)
+        {
+            return;
+        }
+
+        foreach (ParticleController staleParticle in staleParticles)
+        {
+            activeParticles.Remove(staleParticle);
+        }
     }
 
     #endregion
@@ -477,8 +582,10 @@ public class ParticleManager : MonoBehaviourPunCallbacks
         // すでに無効なら拒否（同時取得防止）
         if (!particle.IsVisible) return;
 
-        totalCollected.Value++;
+        long collectedValue = particle.Value;
+        totalCollected.Value += collectedValue;
         particle.SetActive(false);
+        activeParticles.Remove(particle);
         pool.Push(particle);
         currentParticleCount--;
 
@@ -498,7 +605,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
                     masterPlayerCollectCounts[requesterActor] = 0;
                 }
                 
-                masterPlayerCollectCounts[requesterActor]++;
+                masterPlayerCollectCounts[requesterActor] += collectedValue;
                 long newCount = masterPlayerCollectCounts[requesterActor];
                 
                 // Player Custom Properties に同期

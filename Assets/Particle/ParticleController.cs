@@ -12,6 +12,8 @@ public class ParticleController : MonoBehaviour, IPunObservable
 {
     private ParticleManager particleManager;
     public ParticleManager ParticleManager { get => particleManager; set => particleManager = value; }
+    [SerializeField] private long value = 1;
+    public long Value { get => value; set => this.value = value; }
     // 同期用ID（マスターが発行する）
     public int ParticleId { get; set; } = -1;
 

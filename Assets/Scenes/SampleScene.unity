@@ -194,6 +194,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28400306}
   m_CullTransparentMesh: 1
+--- !u!1 &48426538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 48426540}
+  - component: {fileID: 48426539}
+  m_Layer: 0
+  m_Name: TODO
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &48426539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48426538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bf9163334bf2a04c8ea212ebd870b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  todoList:
+  - -SupportLoggers
+  - 
+--- !u!4 &48426540
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48426538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &50589260
 GameObject:
   m_ObjectHideFlags: 0
@@ -803,6 +850,7 @@ GameObject:
   m_Component:
   - component: {fileID: 179973536}
   - component: {fileID: 179973535}
+  - component: {fileID: 179973537}
   m_Layer: 0
   m_Name: '>>>EventManager<<<'
   m_TagString: Untagged
@@ -822,7 +870,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74526a716e1bf9d488ffa51f93e14ac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eventList: []
+  eventList:
+  - {fileID: 11400000, guid: 5665337fa5567f24abc3ede9012b9635, type: 2}
 --- !u!4 &179973536
 Transform:
   m_ObjectHideFlags: 0
@@ -838,6 +887,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &179973537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179973534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2642ac3daf855c749909c342f504b6af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  particleManager: {fileID: 236556462}
+  eventManager: {fileID: 179973535}
 --- !u!1 &218387288
 GameObject:
   m_ObjectHideFlags: 0
@@ -1044,6 +1107,9 @@ MonoBehaviour:
   precomputeFreePositions: 1
   maxDecideAttempts: 50
   eventManager: {fileID: 179973535}
+  baseParticleValue: 1
+  progressPerValueStep: 200
+  valueIncreasePerStep: 1
   initPoolSize: 10
   maxParticleCount: 100
   spawnIntervalSeconds: 1
@@ -1052,6 +1118,8 @@ MonoBehaviour:
     value: 0
   myCollected:
     value: 0
+  rangeX: {x: -5, y: 5}
+  rangeY: {x: -3, y: 7}
 --- !u!4 &236556463
 Transform:
   m_ObjectHideFlags: 0
@@ -56600,7 +56668,7 @@ MonoBehaviour:
   maxCPUs: 3
   minSpawnDelay: 1
   maxSpawnDelay: 4
-  allowSpawn: 1
+  allowSpawn: 0
 --- !u!114 &1061437559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61930,3 +61998,4 @@ SceneRoots:
   - {fileID: 560077481}
   - {fileID: 804822168}
   - {fileID: 179973536}
+  - {fileID: 48426540}

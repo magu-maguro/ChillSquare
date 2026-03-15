@@ -36,7 +36,8 @@ namespace Photon.Realtime
     #if SUPPORTED_UNITY || NETFX_CORE
     using Hashtable = ExitGames.Client.Photon.Hashtable;
     using SupportClass = ExitGames.Client.Photon.SupportClass;
-    #endif
+    using UnityEditor.MPE;
+#endif
 
     /// <summary>
     /// Helper class to debug log basic information about Photon client and vital traffic statistics.
@@ -44,7 +45,7 @@ namespace Photon.Realtime
     /// <remarks>
     /// Set SupportLogger.Client for this to work.
     /// </remarks>
-    #if SUPPORTED_UNITY
+#if SUPPORTED_UNITY
     [DisallowMultipleComponent]
     #if PUN_2_OR_NEWER || FUSION_UNITY
 	[AddComponentMenu("")] // hide from Unity Menus and searches
@@ -57,8 +58,9 @@ namespace Photon.Realtime
         /// <summary>
         /// Toggle to enable or disable traffic statistics logging.
         /// </summary>
-        public bool LogTrafficStats = true;
+        public bool LogTrafficStats = false;
         //private bool loggedStillOfflineMessage;
+            public bool propertyLogStat = false;
 
         private LoadBalancingClient client;
 
@@ -403,11 +405,13 @@ namespace Photon.Realtime
 
         public void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
+            if(!this.propertyLogStat) return;
 			Debug.Log(this.GetFormattedTimestamp() + " SupportLogger OnRoomPropertiesUpdate(propertiesThatChanged).");
         }
 
         public void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
+            if(!this.propertyLogStat) return;
 			Debug.Log(this.GetFormattedTimestamp() + " SupportLogger OnPlayerPropertiesUpdate(targetPlayer,changedProps).");
         }
 
