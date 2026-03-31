@@ -161,10 +161,10 @@ public class ParticleManager : MonoBehaviourPunCallbacks
             masterPlayerCollectCounts.Clear();
             foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
             {
-                int count = 0;
+                long count = 0;
                 if (player.CustomProperties.TryGetValue(MY_COLLECTED_KEY, out var countObj))
                 {
-                    count = (int)countObj;
+                    count = (long)countObj;
                 }
                 masterPlayerCollectCounts[player.ActorNumber] = count;
             }
@@ -292,18 +292,24 @@ public class ParticleManager : MonoBehaviourPunCallbacks
     }
     */
 
-    public void RequestCollectFromMaster(int viewID, int n)
+    public void RequestCollectFromMaster(int viewID, int n, int requesterActor = -1)
     {
+        int actorToCredit = requesterActor;
+        if (n == 0 && actorToCredit <= 0 && PhotonNetwork.LocalPlayer != null)
+        {
+            actorToCredit = PhotonNetwork.LocalPlayer.ActorNumber;
+        }
+
         if (PhotonNetwork.IsMasterClient)
         {
-            MasterHandleCollect(viewID, PhotonNetwork.LocalPlayer.ActorNumber, n);
+            MasterHandleCollect(viewID, actorToCredit, n);
         }
         else
         {
             pv.RPC(nameof(RPC_RequestCollect),
                 RpcTarget.MasterClient,
                 viewID,
-                PhotonNetwork.LocalPlayer.ActorNumber,
+                actorToCredit,
                 n);
         }
     }

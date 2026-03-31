@@ -5,8 +5,9 @@ public class ParticleEventBridge : MonoBehaviour
 {
     [SerializeField] private ParticleManager particleManager;
     [SerializeField] private EventManager eventManager;
+    public ReactiveProperty<long> nextThreshold = new ReactiveProperty<long>(50);
     
-    long nextThreshold = 50;
+    //long nextThreshold = 50;
 
     void Start()
     {
@@ -17,11 +18,11 @@ public class ParticleEventBridge : MonoBehaviour
 
     void CheckThreshold(long total)
     {
-        if (total >= nextThreshold)
+        if (total >= nextThreshold.Value)
         {
             Debug.Log($"Threshold reached: {total}");
             eventManager.TriggerEvent();
-            nextThreshold = CalculateNextThreshold(total);
+            nextThreshold.Value = CalculateNextThreshold(total);
         }
     }
 

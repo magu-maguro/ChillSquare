@@ -60,7 +60,9 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
     void OnEnable()
     {
-        light2d.color = DecideRandomColor();
+        Color myColor = DecideRandomColor();
+        light2d.color = myColor;
+        PlaySpawnEffect(myColor);
     }
 
     public void SetVisible(bool visible, int n = 0)
@@ -122,7 +124,7 @@ public class ParticleController : MonoBehaviour, IPunObservable
         gameObject.SetActive(true);
     }
 
-    public void Release(int n)
+    public void Release(int n, int requesterActor = -1)
     {
         // 即座にローカルで非表示にして重複取得を防止（楽観的ロック）
         if (!IsVisible) return; // すでに取得リクエスト送信済み
@@ -131,10 +133,11 @@ public class ParticleController : MonoBehaviour, IPunObservable
         // （先に非表示にすると MasterHandleCollect 側の IsVisible ガードで弾かれる）
         if (!PhotonNetwork.IsMasterClient)
         {
-            SetVisible(false);
+            // 受信側の状態判定と矛盾しないよう、表示だけでなく状態も下げる
+            SetActive(false);
         }
         
-        if(particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n);
+        if(particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n, requesterActor);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -144,11 +147,23 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
         if (collision.CompareTag("Player"))
         {
-            Release(0);
+            PhotonView playerView = collision.GetComponentInParent<PhotonView>();
+
+            // 自分が所有していないプレイヤーの当たり判定では取得処理を走らせない
+            if (playerView != null && !playerView.IsMine)
+            {
+                return;
+            }
+
+            int requesterActor = playerView != null
+                ? playerView.OwnerActorNr
+                : (PhotonNetwork.LocalPlayer != null ? PhotonNetwork.LocalPlayer.ActorNumber : -1);
+
+            Release(0, requesterActor);
         }
         else if (collision.CompareTag("CPU"))
         {
-            Release(1);
+            Release(1, -1);
         }
     }
 
@@ -184,6 +199,11 @@ public class ParticleController : MonoBehaviour, IPunObservable
         light.color = color;
     }
 
+    private void PlaySpawnEffect(Color color)
+    {
+        //
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if(stream.IsWriting)
@@ -215,8 +235,8 @@ public class ParticleController : MonoBehaviour, IPunObservable
                 transform.position = receivedPos;
             }
             
-            // 表示状態を同期
-            if (isActiveState != receivedActiveState)
+            // 表示状態を同期（ローカル楽観ロックで見た目だけズレた場合も補正）
+            if (isActiveState != receivedActiveState || IsVisible != receivedActiveState)
             {
                 isActiveState = receivedActiveState;
                 SetVisible(isActiveState);
