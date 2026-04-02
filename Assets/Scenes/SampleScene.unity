@@ -1120,8 +1120,8 @@ MonoBehaviour:
     value: 0
   myCollected:
     value: 0
-  rangeX: {x: -5, y: 5}
-  rangeY: {x: -3, y: 7}
+  rangeX: {x: -38, y: 38}
+  rangeY: {x: -15, y: 20}
 --- !u!4 &236556463
 Transform:
   m_ObjectHideFlags: 0
@@ -56806,7 +56806,7 @@ MonoBehaviour:
   maxCPUs: 3
   minSpawnDelay: 1
   maxSpawnDelay: 4
-  allowSpawn: 0
+  allowSpawn: 1
 --- !u!114 &1061437559
 MonoBehaviour:
   m_ObjectHideFlags: 0
