@@ -56766,6 +56766,9 @@ MonoBehaviour:
   baselineMaterial: {fileID: -876546973899608171, guid: 3913dbdb129d628429045251bc934b29, type: 3}
   additionalMaterials:
   - {fileID: -876546973899608171, guid: 6fe9a1747ee0cc241a448a1d5fd0cc1f, type: 3}
+  - {fileID: -876546973899608171, guid: d70e11757f095424a825a22cbf4c25a3, type: 3}
+  - {fileID: -876546973899608171, guid: 3287347a918bc1440a5cd585e465bae1, type: 3}
+  - {fileID: -876546973899608171, guid: b60dfa92a91fbb64eb1f863cf431fb69, type: 3}
 --- !u!114 &1061437556
 MonoBehaviour:
   m_ObjectHideFlags: 0
