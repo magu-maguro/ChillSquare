@@ -33,6 +33,12 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
     public bool IsVisible {get; private set;} = true;
 
+    [Header("Light2D Intensity")]
+    [SerializeField] private float intensityOffset = 0.5f;
+    [SerializeField] private float intensityAmplitude = 0.5f;
+    [SerializeField] private float intensityFrequency = 0.7f;
+    [Range(0f, 10f)]private float intensityTimeOffset = 0f;
+
     void Awake()
     {
         pv = GetComponent<PhotonView>();
@@ -56,6 +62,13 @@ public class ParticleController : MonoBehaviour, IPunObservable
                 sparkles.Add(sparkle);
             }
         }
+        intensityTimeOffset = Random.Range(0f, 10f); // 各パーティクルで時間オフセットをランダムにしてちらつきにバリエーションを持たせる
+    }
+
+    void Update()
+    {
+        //光の明るさを増減させる
+        light2d.intensity = Mathf.PingPong((Time.time + intensityTimeOffset) * intensityFrequency, intensityAmplitude) + intensityOffset;
     }
 
     void OnEnable()

@@ -262,9 +262,9 @@ MonoBehaviour:
   m_ComponentVersion: 2
   m_LightType: 3
   m_BlendStyleIndex: 1
-  m_FalloffIntensity: 0.582
+  m_FalloffIntensity: 1
   m_Color: {r: 1, g: 0.6392157, b: 0, a: 1}
-  m_Intensity: 1.5
+  m_Intensity: 0.5
   m_LightVolumeIntensity: 0
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: 00000000
@@ -288,7 +288,7 @@ MonoBehaviour:
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
-  m_PointLightOuterRadius: 0.86
+  m_PointLightOuterRadius: 10
   m_ShapeLightParametricSides: 5
   m_ShapeLightParametricAngleOffset: 0
   m_ShapeLightParametricRadius: 1
@@ -307,6 +307,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c49c567523649f4787894280a76b6d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  value: 1
+  intensityOffset: 0.5
+  intensityAmplitude: 0.2
+  intensityFrequency: 0.15
 --- !u!114 &1900738983659549647
 MonoBehaviour:
   m_ObjectHideFlags: 0
