@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private bool isJumpPressing;//ジャンプキー押している間かどうか
     private bool isJumping;//isJumpPressed~着地の間かどうか
     private bool isDoubleJumped;//二段ジャンプしたかどうか
+    private bool isFastFalling;//急降下中かどうか
 
     protected virtual Vector2 GetMoveInput()
     {
@@ -45,6 +46,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [Header("gravity")]
     [SerializeField] private float jumpingGravity = 5f;
     [SerializeField] private float normalGravity = 10f;
+    [SerializeField] private float maxFallSpeed = 20f;
+    [SerializeField] private float maxFastFallSpeed = 40f;
     [Header("time")]
     [SerializeField] private float coyoteTime = 0.2f;
     private float coyoteTimer = 0f;
@@ -79,6 +82,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
                     //ジャンプ
                     inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
                     inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
+                    //急降下
+                    inputActions.Player.FastFall.performed += ctx => isFastFalling = true;
+                    inputActions.Player.FastFall.canceled += ctx => isFastFalling = false;
                 }
             }
         }
@@ -199,9 +205,20 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             rb.gravityScale = jumpingGravity;
         }
+        else if(isFastFalling && rb.linearVelocity.y < 0) //急降下に対応
+        {
+            rb.gravityScale = normalGravity * 2f;
+        }
         else
         {
             rb.gravityScale = normalGravity;
+        }
+
+        //落下速度制限
+        if (rb.linearVelocity.y < -maxFallSpeed)
+        {
+            if(isFastFalling) rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFastFallSpeed);
+            else rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFallSpeed);
         }
 
         isJumpPressed = false;
