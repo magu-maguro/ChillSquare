@@ -6,12 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/PostEffects/PostEffectCheckScene.unity
-    guid: f3312621714332f4a96853e659b1a15e
-  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
-  - enabled: 1
+  - enabled: 0
+    path: Assets/PostEffects/PostEffectCheckScene.unity
+    guid: f3312621714332f4a96853e659b1a15e
+  - enabled: 0
     path: Assets/Scenes/OnlineTest.unity
     guid: d4035b839ac3dcd4597b9ed614992c89
   m_configObjects:
