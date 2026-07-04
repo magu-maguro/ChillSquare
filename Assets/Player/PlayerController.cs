@@ -1,5 +1,6 @@
 using Photon.Pun;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.InputSystem;
 using UniRx;
 
@@ -7,6 +8,7 @@ using UniRx;
 public class PlayerController : MonoBehaviourPunCallbacks
 {
     private Rigidbody2D rb;
+    private ForGround forGround;
     // このオブジェクトがこのクライアントの所有か
     private bool isLocalOwner = false;
 
@@ -18,7 +20,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private bool isJumpPressing;//ジャンプキー押している間かどうか
     private bool isJumping;//isJumpPressed~着地の間かどうか
     private bool isDoubleJumped;//二段ジャンプしたかどうか
-    private bool isFastFalling;//急降下中かどうか
+    private bool isDownPressing;//急降下中かどうか
 
     protected virtual Vector2 GetMoveInput()
     {
@@ -58,6 +60,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        forGround = GetComponentInChildren<ForGround>();
         groundCollider = transform.GetChild(0).GetComponent<Collider2D>();
     }
 
@@ -83,8 +86,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                     inputActions.Player.Jump.performed += ctx => { isJumpPressed = true; isJumpPressing = true; };
                     inputActions.Player.Jump.canceled += ctx => isJumpPressing = false;
                     //急降下
-                    inputActions.Player.FastFall.performed += ctx => isFastFalling = true;
-                    inputActions.Player.FastFall.canceled += ctx => isFastFalling = false;
+                    inputActions.Player.FastFall.performed += ctx => isDownPressing = true;
+                    inputActions.Player.FastFall.canceled += ctx => isDownPressing = false;
                 }
             }
         }
@@ -125,7 +128,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             return;
         }
-        
+
         if (!GameManager.Instance.IsPlayerInputAllowed())
         {
             rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
@@ -138,7 +141,16 @@ public class PlayerController : MonoBehaviourPunCallbacks
         rb.linearVelocity = new Vector2(input.x * moveSpeed, rb.linearVelocity.y);
 
         //接地判定
-        isGrounded = GetComponentInChildren<ForGround>().IsGrounded;
+        isGrounded = forGround.IsGrounded;
+        if(isGrounded && forGround.LastGroundCollider != null && forGround.LastGroundCollider.gameObject.layer == LayerMask.NameToLayer("HalfCollision"))
+        {
+            //半透明床の上にいる場合は、下方向の入力があるときだけ接地判定を無効化する
+            if (isDownPressing)
+            {
+                isGrounded = false;
+                StartCoroutine(Fallthrough(forGround.LastGroundCollider, 0.2f));
+            }
+        }
         if (isGrounded)
         {
             isJumping = false;
@@ -149,7 +161,14 @@ public class PlayerController : MonoBehaviourPunCallbacks
         jumpPressing = GetJumpPressing();
         canJump = CanJump();
         CoyoteControll();
-        Junp();
+        Jump();
+    }
+
+    private IEnumerator Fallthrough(Collider2D platformCollider, float duration)
+    {
+        Physics2D.IgnoreCollision(GetComponent<Collider2D>(), platformCollider, true);
+        yield return new WaitForSeconds(duration);
+        Physics2D.IgnoreCollision(GetComponent<Collider2D>(), platformCollider, false);
     }
 
     private void RefreshOwnershipState()
@@ -173,7 +192,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private bool canJump;
 
 
-    private void Junp()
+    private void Jump()
     {
         //ジャンプ(初速度与えるだけ)
         if (jumpPressed && canJump)
@@ -205,7 +224,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         {
             rb.gravityScale = jumpingGravity;
         }
-        else if(isFastFalling && rb.linearVelocity.y < 0) //急降下に対応
+        else if (isDownPressing && rb.linearVelocity.y < 0) //急降下に対応
         {
             rb.gravityScale = normalGravity * 2f;
         }
@@ -217,7 +236,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         //落下速度制限
         if (rb.linearVelocity.y < -maxFallSpeed)
         {
-            if(isFastFalling) rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFastFallSpeed);
+            if (isDownPressing) rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFastFallSpeed);
             else rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFallSpeed);
         }
 
