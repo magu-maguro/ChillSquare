@@ -16,6 +16,10 @@ public class EventManager : MonoBehaviour
     private GameEvent activeGameEvent;
     private EventData activeEventData;
 
+    [Header("Helpers")]
+    [SerializeField]
+    private TerrainEventBridge terrainEventBridge;
+
     public void TriggerEvent()
     {
         Debug.Log("Event triggered!");
@@ -36,14 +40,16 @@ public class EventManager : MonoBehaviour
         }
 
         activeEventData = eventData;
-        CurrentParticleWeightingRate = eventData.particleWeightingRate;
+        
+        
+        SetParametersForEvent(activeEventData);
 
-        OnEventStart.OnNext(eventData);
+        OnEventStart.OnNext(activeEventData);
 
-        activeGameEvent = CreateEvent(eventData);//GameEventを継承したクラスを作成
+        activeGameEvent = CreateEvent(activeEventData);//GameEventを継承したクラスを作成
         activeGameEvent?.StartEvent();//作成したクラスのメソッドを実行
 
-        activeEventCoroutine = StartCoroutine(EventTimer(eventData.duration));
+        activeEventCoroutine = StartCoroutine(EventTimer(activeEventData.duration));
     }
 
     IEnumerator EventTimer(int duration)
@@ -72,7 +78,7 @@ public class EventManager : MonoBehaviour
             activeEventData = null;
         }
 
-        CurrentParticleWeightingRate = 1f;
+        ResetParametersAfterEvent();
     }
 
     EventData SelectEvent()
@@ -89,5 +95,17 @@ public class EventManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void SetParametersForEvent(EventData data)
+    {
+        CurrentParticleWeightingRate = data.particleWeightingRate;
+        terrainEventBridge.ApplyTerrainEffect(data.terrainEffect);
+    }
+
+    private void ResetParametersAfterEvent()
+    {
+        CurrentParticleWeightingRate = 1f;
+        terrainEventBridge.ResetTerrainEffect();
     }
 }

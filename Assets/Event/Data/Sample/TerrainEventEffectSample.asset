@@ -9,11 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c25d90a1dd921374daed47907525d3af, type: 3}
-  m_Name: EventDataSample
+  m_Script: {fileID: 11500000, guid: 77e32be4e55eb924a9d3e9d39e8bdda1, type: 3}
+  m_Name: TerrainEventEffectSample
   m_EditorClassIdentifier: 
-  eventName: Sample
-  eventType: 0
-  terrainEffect: {fileID: 11400000, guid: a65fa9acb62b0b44ba3eaac4b029941b, type: 2}
-  duration: 10
-  particleWeightingRate: 2
+  terrainMaterial: {fileID: -876546973899608171, guid: 1145d5eada4042c42bbedb2c9867cd73, type: 3}

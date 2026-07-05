@@ -11,6 +11,7 @@ public class EventData : ScriptableObject
     }
     public EventType eventType = EventType.Sample;
     
+    public TerrainEventEffect terrainEffect;
     /*
     public ParticleEventEffect particleEffect;
     public PlayerEventEffect playerEffect;
