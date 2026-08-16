@@ -2,6 +2,7 @@ using UnityEngine;
 using UniRx;
 using Photon.Pun;
 using Unity.Cinemachine;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class GameManager : MonoBehaviour
     }
 
     public GameState CurrentState { get; private set; } = GameState.Playing;
+
+    private readonly List<PlayerController> players = new();
+    public IReadOnlyList<PlayerController> Players => players;
 
     private void Awake()
     {
@@ -64,5 +68,21 @@ public class GameManager : MonoBehaviour
         var instance = PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
         instance.GetComponent<PlayerSkinController>().Initialize(skinChangeManager);
         instance.GetComponent<PlayerCameraController>().Initialize(vcam);
+    }
+
+    public void RegisterPlayer(PlayerController player)
+    {
+        if (!players.Contains(player))
+        {
+            players.Add(player);
+        }
+    }
+
+    public void UnregisterPlayer(PlayerController player)
+    {
+        if (players.Contains(player))
+        {
+            players.Remove(player);
+        }
     }
 }

@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private float coyoteTimer = 0f;
     //---
     //CPUかどうか
-    protected virtual bool IsCPU => false;
+    public virtual bool IsCPU => false;
 
     private void Awake()
     {
@@ -99,7 +99,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
             //foreach (var col in GetComponents<Collider2D>()) col.isTrigger = true;
         }
 
-
+        GameManager.Instance.RegisterPlayer(this);
     }
 
     public override void OnDisable()
@@ -108,6 +108,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
         if (inputActions == null) return;
 
         inputActions.Player.Disable();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        GameManager.Instance.UnregisterPlayer(this);
     }
 
     public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)

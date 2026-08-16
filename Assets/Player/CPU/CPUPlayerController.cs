@@ -54,7 +54,7 @@ public class CPUPlayerController : PlayerController
     //
 
     //------CPU Flag------
-    protected override bool IsCPU => true;
+    public override bool IsCPU => true;
     public bool canMove = true;
 
     //------Sensor------
