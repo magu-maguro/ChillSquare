@@ -8,9 +8,10 @@ public class EventManager : MonoBehaviour
     public Subject<EventData> OnEventStart = new Subject<EventData>();
     public Subject<EventData> OnEventEnd = new Subject<EventData>();
     public float CurrentParticleWeightingRate { get; private set; } = 1f;
+    public ParticleEventEffect CurrentParticleEffect { get; private set; } = null;
 
-    [SerializeField]
-    List<EventData> eventList;
+    [SerializeField] List<EventData> eventList;
+    [SerializeField] private EventData defaultEventData;
 
     private Coroutine activeEventCoroutine;
     private GameEvent activeGameEvent;
@@ -100,12 +101,14 @@ public class EventManager : MonoBehaviour
     private void SetParametersForEvent(EventData data)
     {
         CurrentParticleWeightingRate = data.particleWeightingRate;
+        CurrentParticleEffect = data.particleEffect;
         terrainEventBridge.ApplyTerrainEffect(data.terrainEffect);
     }
 
     private void ResetParametersAfterEvent()
     {
         CurrentParticleWeightingRate = 1f;
+        CurrentParticleEffect = defaultEventData.particleEffect;
         terrainEventBridge.ResetTerrainEffect();
     }
 }

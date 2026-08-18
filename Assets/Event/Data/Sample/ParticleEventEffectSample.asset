@@ -12,6 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ae4edbbca54cd54787dca6c87d880ec, type: 3}
   m_Name: ParticleEventEffectSample
   m_EditorClassIdentifier: 
-  particlePrefab: {fileID: 0}
-  particleBehavior: {fileID: 0}
-  spawnInterval: 0
+  spawnVfxPrefab: {fileID: 0}
+  behavior: {fileID: 11400000, guid: 5d09912e34c22084fb76afac2440d8c3, type: 2}

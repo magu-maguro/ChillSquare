@@ -9,14 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 303ebdfda297dcc498dce226701a12e5, type: 3}
-  m_Name: ParticleBehaviorSample
+  m_Script: {fileID: 11500000, guid: a7cab3ddedadaf1459fa482fb661d94b, type: 3}
+  m_Name: RoomEventEffectDefault
   m_EditorClassIdentifier: 
-  startScale: {x: 0, y: 0, z: 0}
-  endScale: {x: 3, y: 3, z: 3}
-  scaleDuration: 1
-  startRotationZ: 0
-  rotateAmountZ: 0
-  rotationDuration: 0
-  delay: 0.1
-  ease: 27
+  roomMaterial: {fileID: 0}

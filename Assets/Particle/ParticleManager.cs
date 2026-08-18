@@ -486,6 +486,7 @@ public class ParticleManager : MonoBehaviourPunCallbacks
 
         ApplyValueToParticle(particle);
         particle.SetActive(true);
+        particle.PlaySpawnEffect(eventManager.CurrentParticleEffect);
         activeParticles.Add(particle);
     }
 

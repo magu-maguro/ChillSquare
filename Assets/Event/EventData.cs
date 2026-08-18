@@ -7,13 +7,15 @@ public class EventData : ScriptableObject
 
     public enum EventType
     {
+        Default,
         Sample
     }
     public EventType eventType = EventType.Sample;
     
     public TerrainEventEffect terrainEffect;
-    /*
+    
     public ParticleEventEffect particleEffect;
+    /*
     public PlayerEventEffect playerEffect;
     public RoomEventEffect roomEffect;
     */

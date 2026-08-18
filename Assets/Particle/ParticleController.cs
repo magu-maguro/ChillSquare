@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using Photon.Pun;
 using System.Collections.Generic;
+using DG.Tweening;
 
 /// <summary>
 /// ParticleSystemは用いていない
@@ -31,23 +32,28 @@ public class ParticleController : MonoBehaviour, IPunObservable
 
     private List<ParticleSparkleController> sparkles = new List<ParticleSparkleController>();
 
-    public bool IsVisible {get; private set;} = true;
+    public bool IsVisible { get; private set; } = true;
 
     [Header("Light2D Intensity")]
     [SerializeField] private float intensityOffset = 0.5f;
     [SerializeField] private float intensityAmplitude = 0.5f;
     [SerializeField] private float intensityFrequency = 0.7f;
-    [Range(0f, 10f)]private float intensityTimeOffset = 0f;
+    [Range(0f, 10f)] private float intensityTimeOffset = 0f;
+
+    private Vector3 defaultLocalScale;
+    private Tween spawnTween;
 
     void Awake()
     {
+        defaultLocalScale = transform.localScale;
+
         pv = GetComponent<PhotonView>();
         rend = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         light2d = GetComponent<Light2D>();
         lastSentPosition = transform.position;
         lastSentActiveState = isActiveState;
-        if(particleManager == null)
+        if (particleManager == null)
         {
             particleManager = FindFirstObjectByType<ParticleManager>();
             this.transform.SetParent(particleManager.transform);
@@ -75,27 +81,29 @@ public class ParticleController : MonoBehaviour, IPunObservable
     {
         Color myColor = DecideRandomColor();
         light2d.color = myColor;
-        PlaySpawnEffect(myColor);
+
+        //ParticleManagerから呼ぶことに
+        //PlaySpawnEffect(myColor);
     }
 
     public void SetVisible(bool visible, int n = 0)
     {
         IsVisible = visible;
 
-        if(rend != null)
+        if (rend != null)
         {
             rend.enabled = visible;
         }
-        if(col != null)
+        if (col != null)
         {
             col.enabled = visible;
         }
-        if(light2d != null)
+        if (light2d != null)
         {
             light2d.enabled = visible;
         }
         //取得演出
-        if(!visible && n == 0)
+        if (!visible && n == 0)
         {
             CollectEffect();
         }
@@ -149,8 +157,8 @@ public class ParticleController : MonoBehaviour, IPunObservable
             // 受信側の状態判定と矛盾しないよう、表示だけでなく状態も下げる
             SetActive(false);
         }
-        
-        if(particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n, requesterActor);
+
+        if (particleManager != null) particleManager.RequestCollectFromMaster(pv.ViewID, n, requesterActor);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -212,14 +220,55 @@ public class ParticleController : MonoBehaviour, IPunObservable
         light.color = color;
     }
 
-    private void PlaySpawnEffect(Color color)
+    public void PlaySpawnEffect(ParticleEventEffect effect)
     {
-        //
+        spawnTween?.Kill();
+
+        // プール再利用時に前回の演出状態を残さない
+        transform.localScale = defaultLocalScale;
+        transform.localRotation = Quaternion.identity;
+
+        if (effect == null)
+            return;
+
+        // VFX
+        if (effect.spawnVfxPrefab != null)
+        {
+            Instantiate(
+                effect.spawnVfxPrefab,
+                transform.position,
+                Quaternion.identity
+            );
+        }
+
+        // 収集粒子本体
+        ParticleBehavior behavior = effect.behavior;
+        if (behavior == null)
+            return;
+
+        transform.localScale = Vector3.Scale(defaultLocalScale, behavior.startScale);
+        transform.localRotation = Quaternion.Euler(0f, 0f, behavior.startRotationZ);
+
+        Sequence sequence = DOTween.Sequence()
+            .SetDelay(behavior.delay)
+            .Append(transform
+                .DOScale(
+                    Vector3.Scale(defaultLocalScale, behavior.endScale),
+                    behavior.scaleDuration)
+                .SetEase(behavior.ease))
+            .Join(transform
+                .DORotate(
+                    new Vector3(0f, 0f, behavior.startRotationZ + behavior.rotateAmountZ),
+                    behavior.rotationDuration,
+                    RotateMode.FastBeyond360)
+                .SetEase(behavior.ease));
+
+        spawnTween = sequence;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if(stream.IsWriting)
+        if (stream.IsWriting)
         {
             // 変化があったときのみ送信して帯域を節約する
             Vector3 currentPosition = transform.position;
@@ -241,13 +290,13 @@ public class ParticleController : MonoBehaviour, IPunObservable
             // 他クライアントが受信：位置と表示状態を適用
             Vector3 receivedPos = (Vector3)stream.ReceiveNext();
             bool receivedActiveState = (bool)stream.ReceiveNext();
-            
+
             // 位置を同期
             if (Vector3.Distance(transform.position, receivedPos) > 0.01f)
             {
                 transform.position = receivedPos;
             }
-            
+
             // 表示状態を同期（ローカル楽観ロックで見た目だけズレた場合も補正）
             if (isActiveState != receivedActiveState || IsVisible != receivedActiveState)
             {

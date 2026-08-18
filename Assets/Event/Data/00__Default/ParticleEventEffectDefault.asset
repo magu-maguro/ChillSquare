@@ -9,14 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 303ebdfda297dcc498dce226701a12e5, type: 3}
-  m_Name: ParticleBehaviorSample
+  m_Script: {fileID: 11500000, guid: 6ae4edbbca54cd54787dca6c87d880ec, type: 3}
+  m_Name: ParticleEventEffectDefault
   m_EditorClassIdentifier: 
-  startScale: {x: 0, y: 0, z: 0}
-  endScale: {x: 3, y: 3, z: 3}
-  scaleDuration: 1
-  startRotationZ: 0
-  rotateAmountZ: 0
-  rotationDuration: 0
-  delay: 0.1
-  ease: 27
+  spawnVfxPrefab: {fileID: 0}
+  behavior: {fileID: 11400000, guid: b2142bc7fd67a8e498fea2c9a094373d, type: 2}
