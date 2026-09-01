@@ -10,6 +10,8 @@ using System.Collections;
 public class MenuController : MonoBehaviour
 {
     private PlayerInputActions inputActions;
+    private System.Action<InputAction.CallbackContext> openMenuHandler;
+    private System.Action<InputAction.CallbackContext> closeMenuHandler;
 
     private bool isMenuOpen = false;
     [SerializeField] private GameObject MenuRoot;
@@ -20,18 +22,22 @@ public class MenuController : MonoBehaviour
     private Coroutine navigateRepeatCoroutine;
     private void OnEnable()
     {
+        if (InputManager.Instance == null) return;
+
         inputActions = InputManager.Instance.GetInputActions();
         if (inputActions == null) return;
         inputActions.Menu.Disable();
 
-        inputActions.Player.OpenMenu.performed += ctx =>
+        openMenuHandler = ctx =>
         {
             if (!isMenuOpen) OpenMenu();
         };
-        inputActions.Menu.CloseMenu.performed += ctx =>
+        closeMenuHandler = ctx =>
         {
             if (isMenuOpen) CloseMenu();
         };
+        inputActions.Player.OpenMenu.performed += openMenuHandler;
+        inputActions.Menu.CloseMenu.performed += closeMenuHandler;
         // メニュー操作（上下左右）
         inputActions.Menu.Navigate.performed += OnNavigatePerformed;
         inputActions.Menu.Navigate.canceled  += OnNavigateCanceled;
@@ -41,35 +47,69 @@ public class MenuController : MonoBehaviour
     {
         if (inputActions == null) return;
 
-        inputActions.Player.OpenMenu.performed -= ctx =>
+        if (openMenuHandler != null)
         {
-            if (!isMenuOpen) OpenMenu();
-        };
-        inputActions.Menu.CloseMenu.performed -= ctx =>
+            inputActions.Player.OpenMenu.performed -= openMenuHandler;
+            openMenuHandler = null;
+        }
+
+        if (closeMenuHandler != null)
         {
-            if (isMenuOpen) CloseMenu();
-        };
+            inputActions.Menu.CloseMenu.performed -= closeMenuHandler;
+            closeMenuHandler = null;
+        }
+
         inputActions.Menu.Navigate.performed -= OnNavigatePerformed;
         inputActions.Menu.Navigate.canceled  -= OnNavigateCanceled;
+        inputActions.Menu.Disable();
+
+        // メニューオブジェクト無効化時の状態復旧
+        if (isMenuOpen)
+        {
+            isMenuOpen = false;
+            inputActions.Player.Enable();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetState(GameManager.GameState.Playing);
+            }
+            if (MenuRoot != null)
+            {
+                MenuRoot.SetActive(false);
+            }
+        }
     }
 
     private void OpenMenu()
     {
         Debug.Log("Open Menu");
         isMenuOpen = true;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetState(GameManager.GameState.SkinMenu);
+        }
         inputActions.Menu.Enable();
         inputActions.Player.Disable();
         // メニューUIの表示などの処理をここに追加
-        MenuRoot.SetActive(true);
+        if (MenuRoot != null)
+        {
+            MenuRoot.SetActive(true);
+        }
     }
     private void CloseMenu()
     {
         Debug.Log("Close Menu");
         isMenuOpen = false;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetState(GameManager.GameState.Playing);
+        }
         inputActions.Menu.Disable();
         inputActions.Player.Enable();
         // メニューUIの非表示などの処理をここに追加
-        MenuRoot.SetActive(false);
+        if (MenuRoot != null)
+        {
+            MenuRoot.SetActive(false);
+        }
     }
 
     // =========================
