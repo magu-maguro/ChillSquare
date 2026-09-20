@@ -347,7 +347,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""794e6aec-760e-4716-badc-8ec662983366"",
-                    ""path"": ""<Keyboard>/i"",
+                    ""path"": ""<Keyboard>/backspace"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

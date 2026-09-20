@@ -9,26 +9,27 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     private Subject<Unit> onJoinedRoom = new Subject<Unit>();
 
     public IObservable<Unit> OnJoinedRoomObservable => onJoinedRoom;
-    void Start()
+
+    //Awakeで即接続していたのを廃止
+
+    public void Connect()
     {
-        // PhotonServerSettingsの設定内容を使ってマスターサーバーへ接続する
+        if (PhotonNetwork.IsConnected)
+            return;
+
         PhotonNetwork.ConnectUsingSettings();
     }
 
-    // マスターサーバーへの接続が成功した時に呼ばれるコールバック
-    public override void OnConnectedToMaster() {
-        // "Room"という名前のルームに参加する（ルームが存在しなければ作成して参加する）
-        PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions(), TypedLobby.Default);
+    public override void OnConnectedToMaster()
+    {
+        // 接続完了を通知するだけ
     }
 
-    // ゲームサーバーへの接続が成功した時に呼ばれるコールバック
-    public override void OnJoinedRoom() {
-        // ランダムな座標に自身のアバター（ネットワークオブジェクト）を生成する
-        /*
-        var position = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f));
-        PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
-        */
-        // ルームに参加したことを通知する
-        onJoinedRoom.OnNext(Unit.Default);
+    public void LeaveRoom()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            PhotonNetwork.LeaveRoom();
+        }
     }
 }

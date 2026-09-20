@@ -35,4 +35,16 @@ public class InputManager : MonoBehaviour
     {
         inputActions?.Dispose();
     }
+
+    public void ActivateMenuInput()
+    {
+        inputActions.Player.Disable();
+        inputActions.Menu.Enable();
+    }
+
+    public void DeactivateMenuInput()
+    {
+        inputActions.Menu.Disable();
+        inputActions.Player.Enable();
+    }
 }
