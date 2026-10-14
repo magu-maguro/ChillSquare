@@ -18,11 +18,20 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             return;
 
         PhotonNetwork.ConnectUsingSettings();
+        //成功したらOnConnectedToMaster
+        //失敗したらOnDisconnected
     }
 
     public override void OnConnectedToMaster()
     {
         // 接続完了を通知するだけ
+        Debug.Log("Photonのマスターサーバに接続しました。");
+        //MatchmakingManagerでも同じコールバックを受けてマッチメイキングする
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.LogWarning("Photonから切断されました。" + cause.ToString());
     }
 
     public void LeaveRoom()

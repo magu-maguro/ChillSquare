@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class RippleManager : MonoBehaviour
 {
@@ -89,7 +90,7 @@ public class RippleManager : MonoBehaviour
             UpdatePlayerRipple(player);
         }
 
-        if(Input.GetKeyDown(KeyCode.L))
+        if(Keyboard.current.lKey.wasPressedThisFrame)
         {
             for (int i = 0; i < GameManager.Instance.Players.Count; i++)
             {

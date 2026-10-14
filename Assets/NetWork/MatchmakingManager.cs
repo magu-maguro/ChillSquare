@@ -11,18 +11,33 @@ public class MatchmakingManager : MonoBehaviourPunCallbacks
         networkManager.Connect();
     }
 
-    public void OnConnected()
+    public override void OnConnectedToMaster()
     {
+        //取り敢えずランダム
         PhotonNetwork.JoinRandomRoom();
-    }
-
-    public override void OnJoinRandomFailed(short returnCode, string message)
-    {
-        PhotonNetwork.CreateRoom(null, new RoomOptions());
+        //成功したらOnJoinedRoom
+        //失敗したらOnJoinRandomFailed
     }
 
     public override void OnJoinedRoom()
     {
         Debug.Log("マッチングルームに参加しました");
+    }
+
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        PhotonNetwork.CreateRoom(null, new RoomOptions());
+        //成功したらOnCreatedRoom
+        //失敗したらOnCreateRoomFailed
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning("ルームの作成に失敗しました。" + message);
+    }
+
+    public override void OnCreatedRoom()
+    {
+        Debug.Log("ルームを作成しました。" + PhotonNetwork.CurrentRoom.Name);
     }
 }
