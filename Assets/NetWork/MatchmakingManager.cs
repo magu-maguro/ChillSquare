@@ -1,18 +1,33 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using Sirenix.OdinInspector;
 
 public class MatchmakingManager : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private NetworkManager networkManager;
+    //[SerializeField] private NetworkManager networkManager; //シングルトンにした
+
+    public enum MatchmakingState
+    {
+        Idle, Connecting, SerchingRoom, CreatingRoom, JoinedRoom, Failed
+    }
+
+    [ShowInInspector] public MatchmakingState CurrentState { get; private set; } = MatchmakingState.Idle;
+
+    void Start()
+    {
+        PhotonNetwork.AutomaticallySyncScene = true;
+    }
 
     public void StartMatchmaking()
     {
-        networkManager.Connect();
+        ChangeState(MatchmakingState.Connecting);
+        NetworkManager.Instance.Connect();
     }
 
     public override void OnConnectedToMaster()
     {
+        ChangeState(MatchmakingState.SerchingRoom);
         //取り敢えずランダム
         PhotonNetwork.JoinRandomRoom();
         //成功したらOnJoinedRoom
@@ -21,11 +36,13 @@ public class MatchmakingManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        ChangeState(MatchmakingState.JoinedRoom);
         Debug.Log("マッチングルームに参加しました");
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
+        ChangeState(MatchmakingState.CreatingRoom);
         PhotonNetwork.CreateRoom(null, new RoomOptions());
         //成功したらOnCreatedRoom
         //失敗したらOnCreateRoomFailed
@@ -33,11 +50,22 @@ public class MatchmakingManager : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
+        ChangeState(MatchmakingState.Failed);
         Debug.LogWarning("ルームの作成に失敗しました。" + message);
     }
 
     public override void OnCreatedRoom()
     {
+        ChangeState(MatchmakingState.JoinedRoom);
         Debug.Log("ルームを作成しました。" + PhotonNetwork.CurrentRoom.Name);
+        PhotonNetwork.LoadLevel("SampleScene");
+    }
+
+
+    private void ChangeState(MatchmakingState newState)
+    {
+        CurrentState = newState;
+        //イベント発行?
+
     }
 }

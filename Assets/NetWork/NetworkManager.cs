@@ -6,11 +6,24 @@ using System;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
+    public static NetworkManager Instance { get; private set; }
     private Subject<Unit> onJoinedRoom = new Subject<Unit>();
 
     public IObservable<Unit> OnJoinedRoomObservable => onJoinedRoom;
 
     //Awakeで即接続していたのを廃止
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     public void Connect()
     {

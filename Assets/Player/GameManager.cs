@@ -3,6 +3,7 @@ using UniRx;
 using Photon.Pun;
 using Unity.Cinemachine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -35,12 +36,17 @@ public class GameManager : MonoBehaviour
         Application.targetFrameRate = 60;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
+        /*
         networkManager.OnJoinedRoomObservable.Subscribe(_ =>
         {
             OnJoinedRoom();
         }).AddTo(this);
+        */
+        yield return new WaitUntil(() =>
+            PhotonNetwork.IsConnectedAndReady && PhotonNetwork.InRoom);
+        InitializePlayer();
     }
 
     public void SetState(GameState newState)
@@ -48,12 +54,14 @@ public class GameManager : MonoBehaviour
         CurrentState = newState;
     }
 
+    /*
     private void OnJoinedRoom()
     {
         // ルームに参加したときの処理
         Debug.Log("ルームに参加しました");
         InitializePlayer();
     }
+    */
 
     //------------Player------------
 
