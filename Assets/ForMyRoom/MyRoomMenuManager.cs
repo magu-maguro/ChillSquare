@@ -1,22 +1,26 @@
 using UnityEngine;
+using MaguroPanel;
 
 public class MyRoomMenuManager : MonoBehaviour
 {
-    public void OpenMenu(GameObject panel)
+    public bool isOpen { get; private set; } = false;
+    public void OpenMenu(MenuManager menuManager)
     {
-        if(panel == null)
+        if(menuManager == null)
         {
-            Debug.LogWarning("パネルが設定されていません。");
+            Debug.LogWarning("MenuManagerが設定されていません。");
             return;
         }
-        panel.SetActive(true);
+        menuManager.OpenRoot();
 
+        isOpen = true;
         InputManager.Instance.ActivateMenuInput();
     }
 
-    public void CloseMenu(GameObject panel)
+    public void CloseMenu()
     {
-        panel.SetActive(false);
+        //panel?.SetActive(false);
+        isOpen = false;
 
         InputManager.Instance.DeactivateMenuInput();
     }

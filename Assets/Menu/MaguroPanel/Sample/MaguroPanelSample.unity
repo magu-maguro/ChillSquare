@@ -503,7 +503,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -3
   m_TargetDisplay: 0
 --- !u!224 &1798181593
 RectTransform:
@@ -682,10 +682,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1533909101891229432, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
-      propertyPath: navigationDirection
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3061308603869711187, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -769,18 +765,6 @@ PrefabInstance:
     - target: {fileID: 3766225539283673371, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
       propertyPath: m_Name
       value: MaguroPanelCanvas
-      objectReference: {fileID: 0}
-    - target: {fileID: 7097814870371940903, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
-      propertyPath: navigationDirection
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8077942606091438581, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
-      propertyPath: navigationDirection
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8813260795691541305, guid: 2113b7ca122a35a4f9eded3898ce86cb, type: 3}
-      propertyPath: navigationDirection
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

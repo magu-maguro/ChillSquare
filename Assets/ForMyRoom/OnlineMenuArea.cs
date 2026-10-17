@@ -1,13 +1,15 @@
 using UnityEngine;
+using MaguroPanel;
 
 
 public class OnlineMenuArea : MenuAreaBehaviour
 {
-    [SerializeField] private MyRoomMenuManager menuManager;
-    [SerializeField] private GameObject onlineMenuPanel;
+    [SerializeField] private MyRoomMenuManager myRoomMenuManager;
+    [SerializeField] private MenuManager onlineMenuManager;
     protected override void OpenMenu()
     {
-        menuManager.OpenMenu(onlineMenuPanel);
+        if(myRoomMenuManager.isOpen) return;
+        myRoomMenuManager.OpenMenu(onlineMenuManager);
         Debug.Log("オンラインメニューを開きました。");
     }
 }

@@ -42,6 +42,9 @@ namespace MaguroPanel
 
         public bool IsOpen => CurrentPanel != null;
 
+
+        private bool isAllowedToControl = true;
+
         private void Awake()
         {
             if (inputActions == null)
@@ -194,6 +197,7 @@ namespace MaguroPanel
 
         private void OnNavigate(InputAction.CallbackContext context)
         {
+            if(!isAllowedToControl) return;
             if (!IsOpen)
                 return;
 
@@ -263,6 +267,7 @@ namespace MaguroPanel
 
         private void OnSubmit(InputAction.CallbackContext context)
         {
+            if(!isAllowedToControl) return;
             Debug.Log($"Submit: CurrentPanel={CurrentPanel?.name}, Selected={selectedButton?.name}");
             if (!IsOpen || isSubmitting)
                 return;
@@ -288,6 +293,7 @@ namespace MaguroPanel
 
         private void OnBack(InputAction.CallbackContext context)
         {
+            if(!isAllowedToControl) return;
             if (IsOpen)
                 GoBack();
         }
@@ -361,6 +367,25 @@ namespace MaguroPanel
                 EventSystem.current.currentSelectedGameObject != selectedButton.gameObject)
             {
                 EventSystem.current.SetSelectedGameObject(selectedButton.gameObject);
+            }
+        }
+
+        public void AllowControl(bool allow)
+        {
+            isAllowedToControl = allow;
+
+            if (!allow)
+            {
+                // メニュー操作を無効化する場合、選択を解除する
+                selectedButton = null;
+
+                if (EventSystem.current != null)
+                    EventSystem.current.SetSelectedGameObject(null);
+            }
+            else
+            {
+                // メニュー操作を有効化する場合、現在のパネルの初期選択に戻す
+                SetInitialSelection(CurrentPanel);
             }
         }
 
