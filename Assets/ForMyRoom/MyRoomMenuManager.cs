@@ -14,7 +14,8 @@ public class MyRoomMenuManager : MonoBehaviour
         menuManager.OpenRoot();
 
         isOpen = true;
-        InputManager.Instance.ActivateMenuInput();
+        //InputManager.Instance.ActivateMenuInput();
+        InputManager.Instance.ChangeActiveState_PlayerInput(false);
     }
 
     public void CloseMenu()
@@ -22,6 +23,7 @@ public class MyRoomMenuManager : MonoBehaviour
         //panel?.SetActive(false);
         isOpen = false;
 
-        InputManager.Instance.DeactivateMenuInput();
+        //InputManager.Instance.DeactivateMenuInput();
+        InputManager.Instance.ChangeActiveState_PlayerInput(true);
     }
 }
