@@ -4,7 +4,31 @@ using MaguroPanel;
 public class OnlineMenuPanel : MenuPanelBehaviour
 {
     [SerializeField] private MyRoomMenuManager menuManager;
-    //[SerializeField] private MatchmakingManager matchmakingManager;
+    private MatchmakingManager matchmakingManager;
+
+    [SerializeField] private MessagePanelController messagePanel;
+
+    private void Awake()
+    {
+        matchmakingManager = NetworkManager.Instance.GetComponent<MatchmakingManager>();
+    }
+
+    private void OnEnable()
+    {
+        matchmakingManager.MessageChanged += OnMessageChanged;
+    }
+
+    private void OnDisable()
+    {
+        matchmakingManager.MessageChanged -= OnMessageChanged;
+    }
+
+    private void OnMessageChanged(string message)
+    {
+        //メッセージを表示する処理をここに追加
+        messagePanel.gameObject.SetActive(true);
+        messagePanel.ShowMessage(message);
+    }
 
     protected override void CloseMenu()
     {
